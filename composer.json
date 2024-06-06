@@ -9,7 +9,8 @@
         "jeroennoten/laravel-adminlte": "^3.11",
         "kreait/laravel-firebase": "^5.8",
         "laravel/framework": "^11.9",
-        "laravel/tinker": "^2.9"
+        "laravel/tinker": "^2.9",
+        "spatie/laravel-html": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

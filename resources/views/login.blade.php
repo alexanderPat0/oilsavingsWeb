@@ -1,4 +1,6 @@
-<x-guest-layout> <!-- Session Status --> <x-auth-session-status class="mb-4" :status="session('status')" />
+
+<!--
+    <x-guest-layout> <!-- Session Status  <x-auth-session-status class="mb-4" :status="session('status')" />
 
 <form method="POST" action="{{ route('login') }}">
 @csrf
@@ -8,7 +10,7 @@
 
 
 
-<!-- Email Address -->
+<!-- Email Address  
 <div>
     <x-input-label for="email" :value="__('Email')" />
     <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
@@ -16,7 +18,7 @@
     <x-input-error :messages="$errors->get('email')" class="mt-2" />
     </div>
 
-    <!-- Password -->
+    <!-- Password  
     <div class="mt-4">
     <x-input-label for="password" :value="__('Password')" />
 
@@ -36,7 +38,7 @@
 @endif
 
 
-<!-- Remember Me -->
+<!-- Remember Me 
 <div class="block mt-4">
     <label for="remember_me" class="inline-flex items-center">
         <input id="remember_me" type="checkbox"
@@ -60,3 +62,24 @@
 </div>
 </form>
 </x-guest-layout>
+
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
+        <label for="email">Email:</label>
+        <input type="email" name="email" required>
+        <label for="password">Contraseña:</label>
+        <input type="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
