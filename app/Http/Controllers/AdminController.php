@@ -1,7 +1,9 @@
-<?php 
+<?php
 namespace App\Http\Controllers;
 
+use App\Mail\VerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -21,6 +23,34 @@ class AdminController extends Controller
 
         $this->database = $firebase->createDatabase();
         $this->auth = $firebase->createAuth();
+    }
+
+    public function createSuperAdmin()
+    {
+
+        // $userProperties = [
+        //     'email' => 'admin.principal@google.com',
+        //     'emailVerified' => true,
+        //     'password' => 'password123',
+        //     'displayName' => 'Admin Principal',
+        // ];
+
+        // $createdUser = $this->auth->createUser($userProperties);
+
+        // $adminData = [
+        //     'adminId' => $createdUser->uid,
+        //     'name' => 'Admin Principal',
+        //     'email' => 'adminprincipal@google.com',
+        //     'password' => Hash::make('password123'), 
+        //     'is_super_admin' => true,
+        //     'is_active' => true,
+        //     'email_verified_at' => now(),
+        //     'remember_token' => Str::random(10),
+        // ];   
+
+        // $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+
+        // return response()->json(['message' => 'Super admin created successfully.']);
     }
 
     // Display list of admins
@@ -145,6 +175,7 @@ class AdminController extends Controller
     {
         $actions = $this->database->getReference('actions')->getSnapshot()->getValue();
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
-        return view('admin.actions', compact('actions', 'admins'));
+        return view('manager.actions', compact('actions', 'admins'));
     }
+
 }
