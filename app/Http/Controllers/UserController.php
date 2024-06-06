@@ -1,5 +1,7 @@
 <?php
 
+// UserController.php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -10,7 +12,6 @@ class UserController extends Controller
 {
     protected $auth;
     protected $database;
-
 
     public function __construct()
     {
@@ -43,7 +44,8 @@ class UserController extends Controller
         return array_filter($users, function ($user) use ($role) {
             return isset($user['role']) && $user['role'] === $role;
         });
-    }    
+    }
+    
 
     public function create()
     {
@@ -52,17 +54,15 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        // Create user in Firebase Authentication
         $userProperties = [
             'email' => $request->email,
             'emailVerified' => false,
-            'password' => $request->password,  // Make sure to have a password input in your form
+            'password' => $request->password,
             'displayName' => $request->username,
         ];
 
         $createdUser = $this->auth->createUser($userProperties);
         
-        // Use the UID from Firebase Authentication to store in the Realtime Database
         $newUserRef = $this->database->getReference('users/' . $createdUser->uid);
         $newUserRef->set([
             'username' => $request->username,
@@ -70,8 +70,9 @@ class UserController extends Controller
             'mainFuel' => $request->mainFuel,
         ]);
 
-        return redirect()->route('users.indexUsers');
+        return redirect()->route('users.index'); // Cambiar a users.index
     }
+
     public function edit($id)
     {
         $user = $this->database->getReference('users')->getChild($id)->getValue();
@@ -81,7 +82,7 @@ class UserController extends Controller
     public function update($id, Request $request)
     {
         $this->database->getReference('users/' . $id)->update($request->except(['_token', '_method']));
-        return redirect()->route('users.indexUsers');
+        return redirect()->route('users.index'); // Cambiar a users.index
     }
 
     public function destroy($id)
