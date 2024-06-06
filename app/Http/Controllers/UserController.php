@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 
+use Illuminate\Support\Facades\Auth as DefAuth;
+
 class UserController extends Controller
 {
     protected $auth;
@@ -25,7 +27,7 @@ class UserController extends Controller
     {
         $allUsers = $this->database->getReference('users')->getSnapshot()->getValue();
         $users = $this->filterUsersByRole($allUsers, 'user');
-        
+
         return view('user-list')->with(['users' => $users, 'role' => 'User']);
     }
 
@@ -33,7 +35,7 @@ class UserController extends Controller
     {
         $allUsers = $this->database->getReference('users')->getSnapshot()->getValue();
         $admins = $this->filterUsersByRole($allUsers, 'admin');
-        
+
         return view('user-list')->with(['users' => $admins, 'role' => 'Admin']);
     }
 
@@ -43,33 +45,37 @@ class UserController extends Controller
             return isset($user['role']) && $user['role'] === $role;
         });
     }
-    
 
     public function create()
     {
         return view('user-form')->with(['id' => null]);
     }
 
-    public function store(Request $request)
-    {
-        $userProperties = [
-            'email' => $request->email,
-            'emailVerified' => false,
-            'password' => $request->password,
-            'displayName' => $request->username,
-        ];
+    // public function store(Request $request)
+    // {
+    //     $userProperties = [
+    //         'email' => $request->email,
+    //         'emailVerified' => false,
+    //         'password' => $request->password,
+    //         'displayName' => $request->username,
+    //     ];
 
-        $createdUser = $this->auth->createUser($userProperties);
-        
-        $newUserRef = $this->database->getReference('users/' . $createdUser->uid);
-        $newUserRef->set([
-            'username' => $request->username,
-            'email' => $request->email,
-            'mainFuel' => $request->mainFuel,
-        ]);
+    //     $createdUser = $this->auth->createUser($userProperties);
 
-        return redirect()->route('users.index'); // Cambiar a users.index
-    }
+    //     $userData = [
+    //         'username' => $request->username,
+    //         'email' => $request->email,
+    //         'mainFuel' => $request->mainFuel,
+    //     ];
+
+    //     $this->database->getReference('users/' . $createdUser->uid)->set($userData);
+
+
+    //     // AUTH FUERA DE FIREBASE
+    //     $this->logAction(Auth::user()->uid, 'create', $createdUser->uid, 'user');
+
+    //     return redirect()->route('users.indexUsers');
+    // }
 
     public function edit($id)
     {
@@ -77,16 +83,38 @@ class UserController extends Controller
         return view('user-form')->with(['user' => $user, 'id' => $id]);
     }
 
-    public function update($id, Request $request)
+    public function update(Request $request, $id)
     {
         $this->database->getReference('users/' . $id)->update($request->except(['_token', '_method']));
-        return redirect()->route('users.index'); // Cambiar a users.index
+
+        // AUTH FUERA DE FIREBASE
+        $this->logAction(DefAuth::user()->uid, 'update', $id, 'user');
+
+        return redirect()->route('users.indexUsers');
     }
 
     public function destroy($id)
     {
         $this->database->getReference('users/' . $id)->remove();
         $this->auth->deleteUser($id);
-        return back();
+
+
+        // AUTH FUERA DE FIREBASE
+        $this->logAction(DefAuth::user()->uid, 'delete', $id, 'user');
+
+        return redirect()->route('users.indexUsers');
+    }
+
+    private function logAction($adminId, $actionType, $targetId, $targetType)
+    {
+        $actionData = [
+            'admin_id' => $adminId,
+            'action_type' => $actionType,
+            'target_id' => $targetId,
+            'target_type' => $targetType,
+            'performed_at' => now()->timestamp,
+        ];
+
+        $this->database->getReference('actions')->push($actionData);
     }
 }

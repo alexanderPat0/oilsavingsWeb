@@ -1,4 +1,5 @@
-<?php
+<?php 
+
 namespace App\Http\Controllers;
 
 use App\Mail\VerifyEmail;
@@ -7,7 +8,6 @@ use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\TwoFactorCode;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -15,6 +15,8 @@ class AdminController extends Controller
     protected $auth;
     protected $database;
 
+
+    
     public function __construct()
     {
         $firebase = (new Factory)
@@ -25,33 +27,86 @@ class AdminController extends Controller
         $this->auth = $firebase->createAuth();
     }
 
-    public function createSuperAdmin()
-    {
-
-        // $userProperties = [
-        //     'email' => 'admin.principal@google.com',
-        //     'emailVerified' => true,
-        //     'password' => 'password123',
-        //     'displayName' => 'Admin Principal',
-        // ];
-
-        // $createdUser = $this->auth->createUser($userProperties);
-
-        // $adminData = [
-        //     'adminId' => $createdUser->uid,
-        //     'name' => 'Admin Principal',
-        //     'email' => 'adminprincipal@google.com',
-        //     'password' => Hash::make('password123'), 
-        //     'is_super_admin' => true,
-        //     'is_active' => true,
-        //     'email_verified_at' => now(),
-        //     'remember_token' => Str::random(10),
-        // ];   
-
-        // $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-
-        // return response()->json(['message' => 'Super admin created successfully.']);
-    }
+    // public function createSuperAdmin()
+    // {
+    //     $userProperties = [
+    //         'email' => 'admin.principal@google.com',
+    //         'emailVerified' => true,
+    //         'password' => 'password123',
+    //         'displayName' => 'Admin Principal',
+    //     ];
+    //     $createdUser = $this->auth->createUser($userProperties);
+    //     $adminData = [
+    //         'adminId' => $createdUser->uid,
+    //         'name' => 'Admin Principal',
+    //         'email' => 'admin.principal@google.com',
+    //         'password' => Hash::make('password123'), 
+    //         'is_super_admin' => true,
+    //         'is_active' => true,
+    //         'email_verified_at' => now(),
+    //         'remember_token' => Str::random(10),
+    //     ];   
+    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+    //     return response()->json(['message' => 'Super admin created successfully.']);
+    // }
+    // public function createSmolAdmin()
+    // {
+    //     $userProperties = [
+    //         'email' => 'administrador1@gmail.com',
+    //         'emailVerified' => true,
+    //         'password' => 'passwordadmin1',
+    //         'displayName' => 'Admin1',
+    //     ];
+    //     $createdUser = $this->auth->createUser($userProperties);
+    //     $adminData = [
+    //         'adminId' => $createdUser->uid,
+    //         'name' => $createdUser->displayName,
+    //         'email' => $createdUser->email,
+    //         'password' => Hash::make($userProperties['password']), 
+    //         'is_super_admin' => false,
+    //         'is_active' => true,
+    //         'email_verified_at' => now(),
+    //         'remember_token' => Str::random(10),
+    //     ];   
+    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+    //     $userProperties = [
+    //         'email' => 'administrador2@gmail.com',
+    //         'emailVerified' => true,
+    //         'password' => 'passwordadmin2',
+    //         'displayName' => 'Admin2',
+    //     ];
+    //     $createdUser = $this->auth->createUser($userProperties);
+    //     $adminData = [
+    //         'adminId' => $createdUser->uid,
+    //         'name' => $createdUser->displayName,
+    //         'email' => $createdUser->email,
+    //         'password' => Hash::make($userProperties['password']), 
+    //         'is_super_admin' => false,
+    //         'is_active' => true,
+    //         'email_verified_at' => now(),
+    //         'remember_token' => Str::random(10),
+    //     ];   
+    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+    //     $userProperties = [
+    //         'email' => 'administrador3@gmail.com',
+    //         'emailVerified' => true,
+    //         'password' => 'passwordadmin3',
+    //         'displayName' => 'Admin3',
+    //     ];
+    //     $createdUser = $this->auth->createUser($userProperties);
+    //     $adminData = [
+    //         'adminId' => $createdUser->uid,
+    //         'name' => $createdUser->displayName,
+    //         'email' => $createdUser->email,
+    //         'password' => Hash::make($userProperties['password']), 
+    //         'is_super_admin' => false,
+    //         'is_active' => true,
+    //         'email_verified_at' => now(),
+    //         'remember_token' => Str::random(10),
+    //     ];   
+    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+    //     return response()->json(['message' => 'Admin created successfully.']);
+    // }
 
     // Display list of admins
     public function index()
@@ -93,7 +148,6 @@ class AdminController extends Controller
 
         $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
 
-        // Generate email verification link
         $verificationLink = $this->auth->getEmailVerificationLink($request->email);
 
         // Send the email verification link
@@ -101,7 +155,6 @@ class AdminController extends Controller
 
         return redirect()->route('admin.index')->with('success', 'Admin created and verification email sent.');
     }
-
 
     // Edit an existing admin
     public function edit($id)
@@ -157,25 +210,25 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin activated successfully.');
     }
 
-    // Log history of actions
+    // Show action history
+    public function showActions()
+    {
+        $actions = $this->database->getReference('actions')->getSnapshot()->getValue();
+        $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
+        return view('admin.actions', compact('actions', 'admins'));
+    }
+
+    // Log actions
     private function logAction($adminId, $actionType, $targetId, $targetType)
     {
         $actionData = [
             'admin_id' => $adminId,
             'action_type' => $actionType,
             'target_id' => $targetId,
+            'target_type' => $targetType,
             'performed_at' => now()->timestamp,
         ];
 
         $this->database->getReference('actions')->push($actionData);
     }
-
-    // Show action history
-    public function showActions()
-    {
-        $actions = $this->database->getReference('actions')->getSnapshot()->getValue();
-        $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
-        return view('manager.actions', compact('actions', 'admins'));
-    }
-
 }

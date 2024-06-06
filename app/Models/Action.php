@@ -17,7 +17,6 @@ class Action extends Model
         'performed_at' => 'datetime',
     ];
 
-    // Relationship with the admin who made the action
     public function admin()
     {
         return $this->belongsTo(Admin::class);
