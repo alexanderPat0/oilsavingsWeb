@@ -4,12 +4,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Welcome to Oilsavings</title>
     @vite(['resources/css/welcomeScreen.css', 'resources/js/app.js'])
     <!-- CSS de SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- JS de SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 
 <body class="antialiased body-background">
@@ -61,62 +63,65 @@
     </div>
 
     <script>
-        // Escuchador para el botón de Login
-        document.getElementById('loginBtn').addEventListener('click', function () {
-            Swal.fire({
-                title: 'Login',
-                html: `
-            <input type="text" id="email" class="swal2-input" placeholder="Email">
-            <input type="password" id="password" class="swal2-input" placeholder="Password">`,
-                confirmButtonText: 'Sign In',
-                focusConfirm: false,
-                preConfirm: () => {
-                    const login = Swal.getPopup().querySelector('#login').value;
-                    const password = Swal.getPopup().querySelector('#password').value;
-                    if (!login || !password) {
-                        Swal.showValidationMessage(`Please enter username and password`);
-                    }
-                    return { login: login, password: password }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Aquí manejarías el envío del formulario
-                    console.log('Login:', result.value.login);
-                    console.log('Password:', result.value.password);
-                }
-            });
-        });
-
         // Escuchador para el botón de Register
         document.getElementById('registerBtn').addEventListener('click', function () {
             Swal.fire({
                 title: 'Register',
                 html: `
-            <input type="text" id="username" class="swal2-input" placeholder="Username">
-            <input type="email" id="email" class="swal2-input" placeholder="Email">
-            <input type="password" id="newPassword" class="swal2-input" placeholder="Password">
-            <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirm Password">`,
+                    <input type="text" id="username" class="swal2-input" placeholder="Username">
+                    <input type="email" id="email" class="swal2-input" placeholder="Email">
+                    <input type="password" id="newPassword" class="swal2-input" placeholder="Password">
+                    <input type="password" id="password_confirmation" class="swal2-input" placeholder="Confirm Password">`,
                 confirmButtonText: 'Sign Up',
                 focusConfirm: false,
                 preConfirm: () => {
-                    const username = Swal.getPopup().querySelector('#username').value;
-                    const email = Swal.getPopup().querySelector('#email').value;
-                    const newPassword = Swal.getPopup().querySelector('#newPassword').value;
-                    const confirmPassword = Swal.getPopup().querySelector('#confirmPassword').value;
-                    if (!username || !email || !newPassword || newPassword !== confirmPassword) {
-                        Swal.showValidationMessage(`Please enter all fields correctly`);
+                    // const username = Swal.getPopup().querySelector('#username').value;
+                    // const email = Swal.getPopup().querySelector('#email').value;
+                    // const newPassword = Swal.getPopup().querySelector('#newPassword').value;
+                    // const confirmPassword = Swal.getPopup().querySelector('#confirmPassword').value;
+
+                    const username = document.getElementById("username").value;
+                    const email = document.getElementById("email").value;
+                    const newPassword = document.getElementById("newPassword").value;
+                    const password_confirmation = document.getElementById("password_confirmation").value;
+
+
+                    // Validar que los campos no están vacíos y que las contraseñas coinciden
+                    if (!username || !email || !newPassword || newPassword !== password_confirmation) {
+                        Swal.showValidationMessage('Please enter all fields correctly and ensure passwords match.');
+                        return false;
                     }
-                    return { username: username, email: email, newPassword: newPassword }
+                    return { username: username, email: email, password: newPassword, password_confirmation: password_confirmation };
                 }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    // Aquí manejarías el envío del formulario
-                    console.log('Username:', result.value.username);
-                    console.log('Email:', result.value.email);
-                    console.log('Password:', result.value.newPassword);
-                }
+                console.log(result.value);
+
+                console.log(result.value.username);
+                console.log(result.value.email);
+
+                const { username, email, password, password_confirmation } = result.value;
+                // Realizar la solicitud AJAX para registrar el administrador
+                return $.ajax({
+                    url: '/admin/register',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        name: username, // aquí también parece que tenías que usar `username` en lugar de `name`
+                        email: email,
+                        password: password,
+                        password_confirmation: password_confirmation
+                    }
+                }).done(function (response) {
+                    Swal.fire('Registered!', 'The admin has been registered successfully.', 'success');
+                }).fail(function (jqXHR, textStatus) {
+                    Swal.showValidationMessage(`Request failed: ${jqXHR.responseJSON.message}`);
+                });
+
             });
         });
+
     </script>
 </body>
 

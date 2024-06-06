@@ -14,6 +14,8 @@ class AdminController extends Controller
 {
     protected $auth;
     protected $database;
+
+
     
     public function __construct()
     {
@@ -108,7 +110,6 @@ class AdminController extends Controller
 
     // Display list of admins
     public function index()
-    
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
         return view('admin.index', compact('admins'));
@@ -125,7 +126,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:admins',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -139,10 +140,16 @@ class AdminController extends Controller
         $createdUser = $this->auth->createUser($userProperties);
 
         $adminData = [
-            'name' => $request->name,
+            'adminId' => $createdUser->uid,
             'email' => $request->email,
-            'is_super_admin' => false,
+            'email_verified_at' => null,
             'is_active' => false,
+            'is_super_admin' => false,
+            'name' => $request->name,
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(10),
+        
+            
         ];
 
         $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
@@ -152,7 +159,7 @@ class AdminController extends Controller
         // Send the email verification link
         Mail::to($request->email)->send(new VerifyEmail($verificationLink));
 
-        return redirect()->route('admin.index')->with('success', 'Admin created and verification email sent.');
+        return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);
     }
 
     // Edit an existing admin
@@ -181,7 +188,7 @@ class AdminController extends Controller
             $this->auth->changeUserPassword($id, $request->password);
         }
 
-        // $this->logAction(auth()->user()->id, 'create', $id, 'admin');
+        $this->logAction(auth()->user()->id, 'create', $id, 'admin');
 
         $this->database->getReference('admins/' . $id)->update($adminData);
 

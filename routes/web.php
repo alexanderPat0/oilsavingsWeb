@@ -6,16 +6,16 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    return view('welcome');  // Asegúrate de que el nombre de la vista corresponde a la que deseas mostrar
+    return view('welcome');
 })->name('home');
 
 Route::get('admins', [AdminController::class, 'index'])->name('admin.index');
 Route::get('admins/create', [AdminController::class, 'create'])->name('admin.create');
-Route::post('admins', [AdminController::class, 'store'])->name('admin.store');
 Route::get('admins/{admin}/edit', [AdminController::class, 'edit'])->name('admin.edit');
 Route::put('admins/{admin}', [AdminController::class, 'update'])->name('admin.update');
 Route::delete('admins/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
 Route::get('actions', [AdminController::class, 'showActions'])->name('admin.actions');
+Route::post('/admin/register', [AdminController::class, 'store'])->name('admin.store');
 
 Route::get('users', [UserController::class, 'indexUsers'])->name('users.index');
 Route::get('users/create', [UserController::class, 'create'])->name('users.create');
