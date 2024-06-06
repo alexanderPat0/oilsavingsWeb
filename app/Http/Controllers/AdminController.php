@@ -14,8 +14,6 @@ class AdminController extends Controller
 {
     protected $auth;
     protected $database;
-
-
     
     public function __construct()
     {
@@ -110,6 +108,7 @@ class AdminController extends Controller
 
     // Display list of admins
     public function index()
+    
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
         return view('admin.index', compact('admins'));
@@ -142,7 +141,7 @@ class AdminController extends Controller
         $adminData = [
             'name' => $request->name,
             'email' => $request->email,
-            'is_super_admin' => $request->has('is_super_admin'),
+            'is_super_admin' => false,
             'is_active' => false,
         ];
 
@@ -181,6 +180,8 @@ class AdminController extends Controller
         if ($request->password) {
             $this->auth->changeUserPassword($id, $request->password);
         }
+
+        // $this->logAction(auth()->user()->id, 'create', $id, 'admin');
 
         $this->database->getReference('admins/' . $id)->update($adminData);
 

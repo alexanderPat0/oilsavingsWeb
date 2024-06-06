@@ -4,6 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/', function () {
+    return view('welcome');  // Asegúrate de que el nombre de la vista corresponde a la que deseas mostrar
+})->name('home');
+
 Route::get('admins', [AdminController::class, 'index'])->name('admin.index');
 Route::get('admins/create', [AdminController::class, 'create'])->name('admin.create');
 Route::post('admins', [AdminController::class, 'store'])->name('admin.store');
