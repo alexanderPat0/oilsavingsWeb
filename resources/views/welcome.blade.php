@@ -108,7 +108,7 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
-                        name: username, // aquí también parece que tenías que usar `username` en lugar de `name`
+                        name: username, 
                         email: email,
                         password: password,
                         password_confirmation: password_confirmation

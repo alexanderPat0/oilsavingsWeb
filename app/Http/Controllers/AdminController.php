@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -16,7 +16,7 @@ class AdminController extends Controller
     protected $database;
 
 
-    
+
     public function __construct()
     {
         $firebase = (new Factory)
@@ -137,29 +137,39 @@ class AdminController extends Controller
             'displayName' => $request->name,
         ];
 
-        $createdUser = $this->auth->createUser($userProperties);
+        try {
 
-        $adminData = [
-            'adminId' => $createdUser->uid,
-            'email' => $request->email,
-            'email_verified_at' => null,
-            'is_active' => false,
-            'is_super_admin' => false,
-            'name' => $request->name,
-            'password' => Hash::make($request->password),
-            'remember_token' => Str::random(10),
-        
-            
-        ];
+            $createdUser = $this->auth->createUser($userProperties);
 
-        $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+            $adminData = [
+                'adminId' => $createdUser->uid,
+                'email' => $request->email,
+                'email_verified' => false,
+                'email_verified_at' => '',
+                'is_active' => false,
+                'is_super_admin' => false,
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+                'remember_token' => Str::random(10),
 
-        $verificationLink = $this->auth->getEmailVerificationLink($request->email);
 
-        // Send the email verification link
-        Mail::to($request->email)->send(new VerifyEmail($verificationLink));
+            ];
 
-        return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);
+            $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+
+            $verificationLink = $this->auth->getEmailVerificationLink($request->email);
+            Mail::to($request->email)->send(new VerifyEmail($verificationLink));
+
+            return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);
+
+        } catch (\Kreait\Firebase\Exception\Auth\EmailExists $e) {
+            return response()->json(['success' => false, 'message' => 'Email already exists.'], 409);
+        } catch (\Throwable $e) {
+            // Handle other possible exceptions
+            return response()->json(['success' => false, 'message' => 'Registration failed.', 'error' => $e->getMessage()], 500);
+        }
+
+
     }
 
     // Edit an existing admin
