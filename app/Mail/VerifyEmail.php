@@ -18,8 +18,9 @@ class VerifyEmail extends Mailable
 
     public function build()
     {
-        return $this->view('emails.verify-email')  // Asegúrate de referenciar la vista correcta.
-                    ->subject('Verify Your Email Address')
-                    ->with(['verificationLink' => $this->verificationLink]);  // Pasa la URL a la vista.
+        return $this->view('emails.verify-email')
+            ->subject('Verify Your Email Address')
+            ->with(['verificationLink' => $this->verificationLink]);
     }
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\VerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
@@ -158,6 +159,7 @@ class AdminController extends Controller
             $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
 
             $verificationLink = $this->auth->getEmailVerificationLink($request->email);
+            Log::info('Verification Link: ' . $verificationLink);
             Mail::to($request->email)->send(new VerifyEmail($verificationLink));
 
             return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);

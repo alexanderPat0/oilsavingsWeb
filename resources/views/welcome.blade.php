@@ -114,7 +114,7 @@
                         password_confirmation: password_confirmation
                     }
                 }).done(function (response) {
-                    Swal.fire('Registered!', 'The admin has been registered successfully.', 'success');
+                    Swal.fire('Registered!', 'Please verify your account by clicking on the link we have just emailed you!.', 'success');
                 }).fail(function (jqXHR, textStatus) {
                     Swal.showValidationMessage(`Request failed: ${jqXHR.responseJSON.message}`);
                 });
