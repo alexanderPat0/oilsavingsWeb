@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendVerificationEmailJob;
+use App\Mail\SendVerificationEmail;
 use App\Mail\VerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,9 +17,6 @@ class AdminController extends Controller
 {
     protected $auth;
     protected $database;
-
-
-
     public function __construct()
     {
         $firebase = (new Factory)
@@ -27,87 +26,6 @@ class AdminController extends Controller
         $this->database = $firebase->createDatabase();
         $this->auth = $firebase->createAuth();
     }
-
-    // public function createSuperAdmin()
-    // {
-    //     $userProperties = [
-    //         'email' => 'admin.principal@google.com',
-    //         'emailVerified' => true,
-    //         'password' => 'password123',
-    //         'displayName' => 'Admin Principal',
-    //     ];
-    //     $createdUser = $this->auth->createUser($userProperties);
-    //     $adminData = [
-    //         'adminId' => $createdUser->uid,
-    //         'name' => 'Admin Principal',
-    //         'email' => 'admin.principal@google.com',
-    //         'password' => Hash::make('password123'), 
-    //         'is_super_admin' => true,
-    //         'is_active' => true,
-    //         'email_verified_at' => now(),
-    //         'remember_token' => Str::random(10),
-    //     ];   
-    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-    //     return response()->json(['message' => 'Super admin created successfully.']);
-    // }
-    // public function createSmolAdmin()
-    // {
-    //     $userProperties = [
-    //         'email' => 'administrador1@gmail.com',
-    //         'emailVerified' => true,
-    //         'password' => 'passwordadmin1',
-    //         'displayName' => 'Admin1',
-    //     ];
-    //     $createdUser = $this->auth->createUser($userProperties);
-    //     $adminData = [
-    //         'adminId' => $createdUser->uid,
-    //         'name' => $createdUser->displayName,
-    //         'email' => $createdUser->email,
-    //         'password' => Hash::make($userProperties['password']), 
-    //         'is_super_admin' => false,
-    //         'is_active' => true,
-    //         'email_verified_at' => now(),
-    //         'remember_token' => Str::random(10),
-    //     ];   
-    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-    //     $userProperties = [
-    //         'email' => 'administrador2@gmail.com',
-    //         'emailVerified' => true,
-    //         'password' => 'passwordadmin2',
-    //         'displayName' => 'Admin2',
-    //     ];
-    //     $createdUser = $this->auth->createUser($userProperties);
-    //     $adminData = [
-    //         'adminId' => $createdUser->uid,
-    //         'name' => $createdUser->displayName,
-    //         'email' => $createdUser->email,
-    //         'password' => Hash::make($userProperties['password']), 
-    //         'is_super_admin' => false,
-    //         'is_active' => true,
-    //         'email_verified_at' => now(),
-    //         'remember_token' => Str::random(10),
-    //     ];   
-    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-    //     $userProperties = [
-    //         'email' => 'administrador3@gmail.com',
-    //         'emailVerified' => true,
-    //         'password' => 'passwordadmin3',
-    //         'displayName' => 'Admin3',
-    //     ];
-    //     $createdUser = $this->auth->createUser($userProperties);
-    //     $adminData = [
-    //         'adminId' => $createdUser->uid,
-    //         'name' => $createdUser->displayName,
-    //         'email' => $createdUser->email,
-    //         'password' => Hash::make($userProperties['password']), 
-    //         'is_super_admin' => false,
-    //         'is_active' => true,
-    //         'email_verified_at' => now(),
-    //         'remember_token' => Str::random(10),
-    //     ];   
-    //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-    //     return response()->json(['message' => 'Admin created successfully.']);
-    // }
 
     // Display list of admins
     public function index()
@@ -138,40 +56,30 @@ class AdminController extends Controller
             'displayName' => $request->name,
         ];
 
-        try {
 
-            $createdUser = $this->auth->createUser($userProperties);
-
-            $adminData = [
-                'adminId' => $createdUser->uid,
-                'email' => $request->email,
-                'email_verified' => false,
-                'email_verified_at' => '',
-                'is_active' => false,
-                'is_super_admin' => false,
-                'name' => $request->name,
-                'password' => Hash::make($request->password),
-                'remember_token' => Str::random(10),
+        // $adminData = [
+        //     'adminId' => $createdUser->uid,
+        //     'email' => $request->email,
+        //     'email_verified' => false,
+        //     'email_verified_at' => '',
+        //     'is_active' => false,
+        //     'is_super_admin' => false,
+        //     'name' => $request->name,
+        //     'password' => Hash::make($request->password),
+        //     'remember_token' => Str::random(10),
 
 
-            ];
-
-            $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
-
-            $verificationLink = $this->auth->getEmailVerificationLink($request->email);
-            Log::info('Verification Link: ' . $verificationLink);
-            Mail::to($request->email)->send(new VerifyEmail($verificationLink));
-
-            return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);
-
-        } catch (\Kreait\Firebase\Exception\Auth\EmailExists $e) {
-            return response()->json(['success' => false, 'message' => 'Email already exists.'], 409);
-        } catch (\Throwable $e) {
-            // Handle other possible exceptions
-            return response()->json(['success' => false, 'message' => 'Registration failed.', 'error' => $e->getMessage()], 500);
-        }
+        // ];
+        $createdUser = $this->auth->createUser($userProperties);
 
 
+        $pendingRef = $this->database->getReference('pending_activation')->push([
+            'email' => $request->email,
+            'is_sent' => false,
+            'created_at' => now()->toString(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Admin registered, admin activation pending.']);
     }
 
     // Edit an existing admin
@@ -180,6 +88,8 @@ class AdminController extends Controller
         $admin = $this->database->getReference('admins')->getChild($id)->getValue();
         return view('admin.edit', compact('admin', 'id'));
     }
+
+
 
     // Update an existing admin
     public function update(Request $request, $id)
@@ -230,6 +140,34 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin activated successfully.');
     }
 
+    public function sendActivation($id)
+{
+    try {
+        $pending = $this->database->getReference('pending_activation/' . $id)->getSnapshot()->getValue();
+        $verificationLink = $this->auth->getEmailVerificationLink($pending['email']);
+        Mail::to($pending['email'])->send(new SendVerificationEmail($verificationLink));
+
+        // Marcar como enviado
+        $this->database->getReference('pending_activation/' . $id)->update(['is_sent' => true]);
+
+        return response()->json(['success' => true, 'message' => 'Verification link sent.']);
+    } catch (\Exception $e) {
+        Log::error('Failed to send verification link: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to send the link.']);
+    }
+}
+
+
+    public function pendingActivation()
+    {
+        $pendingActivation = $this->database->getReference('pending_activation')  // Asegúrate que la ruta sea correcta
+        ->orderByChild('is_sent')
+        ->equalTo(false)
+        ->getSnapshot()
+        ->getValue();
+
+        return view('manager.activations', ['pendings' => $pendingActivation]);
+    }
     // Show action history
     public function showActions()
     {
@@ -252,3 +190,85 @@ class AdminController extends Controller
         $this->database->getReference('actions')->push($actionData);
     }
 }
+
+
+// public function createSuperAdmin()
+// {
+//     $userProperties = [
+//         'email' => 'admin.principal@google.com',
+//         'emailVerified' => true,
+//         'password' => 'password123',
+//         'displayName' => 'Admin Principal',
+//     ];
+//     $createdUser = $this->auth->createUser($userProperties);
+//     $adminData = [
+//         'adminId' => $createdUser->uid,
+//         'name' => 'Admin Principal',
+//         'email' => 'admin.principal@google.com',
+//         'password' => Hash::make('password123'), 
+//         'is_super_admin' => true,
+//         'is_active' => true,
+//         'email_verified_at' => now(),
+//         'remember_token' => Str::random(10),
+//     ];   
+//     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+//     return response()->json(['message' => 'Super admin created successfully.']);
+// }
+// public function createSmolAdmin()
+// {
+//     $userProperties = [
+//         'email' => 'administrador1@gmail.com',
+//         'emailVerified' => true,
+//         'password' => 'passwordadmin1',
+//         'displayName' => 'Admin1',
+//     ];
+//     $createdUser = $this->auth->createUser($userProperties);
+//     $adminData = [
+//         'adminId' => $createdUser->uid,
+//         'name' => $createdUser->displayName,
+//         'email' => $createdUser->email,
+//         'password' => Hash::make($userProperties['password']), 
+//         'is_super_admin' => false,
+//         'is_active' => true,
+//         'email_verified_at' => now(),
+//         'remember_token' => Str::random(10),
+//     ];   
+//     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+//     $userProperties = [
+//         'email' => 'administrador2@gmail.com',
+//         'emailVerified' => true,
+//         'password' => 'passwordadmin2',
+//         'displayName' => 'Admin2',
+//     ];
+//     $createdUser = $this->auth->createUser($userProperties);
+//     $adminData = [
+//         'adminId' => $createdUser->uid,
+//         'name' => $createdUser->displayName,
+//         'email' => $createdUser->email,
+//         'password' => Hash::make($userProperties['password']), 
+//         'is_super_admin' => false,
+//         'is_active' => true,
+//         'email_verified_at' => now(),
+//         'remember_token' => Str::random(10),
+//     ];   
+//     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+//     $userProperties = [
+//         'email' => 'administrador3@gmail.com',
+//         'emailVerified' => true,
+//         'password' => 'passwordadmin3',
+//         'displayName' => 'Admin3',
+//     ];
+//     $createdUser = $this->auth->createUser($userProperties);
+//     $adminData = [
+//         'adminId' => $createdUser->uid,
+//         'name' => $createdUser->displayName,
+//         'email' => $createdUser->email,
+//         'password' => Hash::make($userProperties['password']), 
+//         'is_super_admin' => false,
+//         'is_active' => true,
+//         'email_verified_at' => now(),
+//         'remember_token' => Str::random(10),
+//     ];   
+//     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
+//     return response()->json(['message' => 'Admin created successfully.']);
+// }

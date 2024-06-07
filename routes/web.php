@@ -16,6 +16,10 @@ Route::put('admins/{admin}', [AdminController::class, 'update'])->name('admin.up
 Route::delete('admins/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
 Route::get('actions', [AdminController::class, 'showActions'])->name('admin.actions');
 Route::post('/admin/register', [AdminController::class, 'store'])->name('admin.store');
+Route::post('/manager/activations/send/{id}', [AdminController::class, 'sendActivation'])->name('admin.activations.send');
+Route::get('/manager/activations', [AdminController::class, 'pendingActivation'])->name('manager.activations');
+
+
 
 Route::get('users', [UserController::class, 'indexUsers'])->name('users.index');
 Route::get('users/create', [UserController::class, 'create'])->name('users.create');
@@ -26,6 +30,7 @@ Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.d
 
 // Llamar a esta URL en caso de que se elimine el admin principal.
 // Route::get('createSuperAdmin', [AdminController::class, 'createSuperAdmin']);
+// Llamar a esta URL en caso de que se eliminen los admins pequeños.
 // Route::get('createSmolAdmin', [AdminController::class, 'createSmolAdmin']);
 
 Route::view('dashboard', 'dashboard')
