@@ -9,8 +9,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+//Aqui solo van las rutas que ejerce el gerente/manager/superadmin, lo que sea
 Route::get('admins', [AdminController::class, 'index'])->name('admin.index');
-Route::get('admins/create', [AdminController::class, 'create'])->name('admin.create');
+
 Route::get('admins/{admin}/edit', [AdminController::class, 'edit'])->name('admin.edit');
 Route::put('admins/{admin}', [AdminController::class, 'update'])->name('admin.update');
 Route::delete('admins/{admin}', [AdminController::class, 'destroy'])->name('admin.destroy');
