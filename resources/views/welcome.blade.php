@@ -100,14 +100,22 @@
                         password: password,
                     },
                     success: function (response) {
-                        Swal.fire({
-                            position: "top-end",
-                            icon: "success",
-                            title: "Welcome!",
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
+                        if (response.success && response.redirect_url) {
+                            console.log("Setting sessionStorage:", response);
+                            sessionStorage.setItem('justLoggedIn', 'true');
+                            console.log("Redirecting to:", response.redirect_url);
+                            window.location.href = response.redirect_url;
+                        }
                     },
+                    // success: function (response) {
+                    //     Swal.fire({
+                    //         position: "top-end",
+                    //         icon: "success",
+                    //         title: "Welcome!",
+                    //         showConfirmButton: false,
+                    //         timer: 1500
+                    //     });
+                    // },
                     error: function (jqXHR, textStatus, errorThrown) {
                         Swal.fire({
                             icon: 'error',

@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "components/font-awesome": "^6.5",
         "jeroennoten/laravel-adminlte": "^3.11",
         "kreait/firebase-bundle": "^5.3",
         "kreait/laravel-firebase": "^5.8",

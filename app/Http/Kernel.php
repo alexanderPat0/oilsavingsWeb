@@ -8,6 +8,8 @@ use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
+    use App\Http\Middleware\EnsureIsSuperAdmin;
+
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -51,23 +53,24 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        // Agrega tu middleware aquí
-        'superadmin' => \App\Http\Middleware\EnsureIsSuperAdmin::class,
+        'superadmin' => EnsureIsSuperAdmin::class,
     ];
 
-	/**
-	 * @return mixed
-	 */
-	public function get() {
-		return $this->middleware;
-	}
-	
-	/**
-	 * @param mixed $middleware 
-	 * @return self
-	 */
-	public function set($middleware): self {
-		$this->middleware = $middleware;
-		return $this;
-	}
+    /**
+     * @return mixed
+     */
+    public function get()
+    {
+        return $this->middleware;
+    }
+
+    /**
+     * @param mixed $middleware 
+     * @return self
+     */
+    public function set($middleware): self
+    {
+        $this->middleware = $middleware;
+        return $this;
+    }
 }

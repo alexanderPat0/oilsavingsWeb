@@ -26,7 +26,7 @@ class AdminController extends Controller
     public function __construct()
     {
         $firebase = (new Factory)
-            ->withServiceAccount(base_path(env('FIREBASE_CREDENTIALS')))
+            ->withServiceAccount(storage_path('firebase.json'))
             ->withDatabaseUri(env("FIREBASE_DATABASE_URL"));
 
         $this->database = $firebase->createDatabase();
@@ -35,45 +35,46 @@ class AdminController extends Controller
 
     //Login as admin
     public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-    try {
-        $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
-        $user = $signInResult->data(); 
-        Log::info('DATOS DEL USUARIO: ' . $user);
+        try {
+            $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
+            $user = $signInResult->data();
 
-        $adminRef = $this->database->getReference('admins/' . $user['localId']);
-        $admin = $adminRef->getValue();
+            $adminRef = $this->database->getReference('admins/' . $user['localId']);
+            $admin = $adminRef->getValue();
 
-        if (is_null($admin)) {
-            throw new Exception("User is not an admin."); 
+            if (is_null($admin)) {
+                throw new Exception("User is not an admin.");
+            }
+
+            $idToken = $signInResult->idToken();
+            $fiveMinutes = 300; // Cookies para 5 minutos
+            $oneWeek = 500; // Cookies para 5 minutos
+
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, $oneWeek);
+
+            // Prepara y envía la cookie como parte de la respuesta JSON
+            $cookie = cookie('session', $sessionCookieString, 500, null, null, true, true, false, 'Strict');
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => '/users'
+            ])->withCookie($cookie);
+
+        } catch (AuthException $e) {
+            return response()->json(['error' => 'The provided credentials do not match our records.'], 422);
+        } catch (FirebaseException $e) {
+            return response()->json(['error' => 'An error occurred with Firebase Authentication.'], 422);
+        } catch (Exception $e) {
+            // Aquí capturas todas las otras excepciones que no son específicamente de Firebase
+            return response()->json(['error' => $e->getMessage()], 500); // Usamos el código de estado 500 para indicar un error del servidor
         }
-
-        $idToken = $signInResult->idToken();
-        $fiveMinutes = 300; // Cookies para 5 minutos
-
-        $sessionCookieString = $this->auth->createSessionCookie($idToken, $fiveMinutes);
-
-        // Prepara y envía la cookie como parte de la respuesta JSON
-        $cookie = cookie('session', $sessionCookieString, 5, null, null, true, true, false, 'Strict');
-        
-        return response()->json([
-            'success' => true,
-            'redirect_url' => '/users'
-        ])->withCookie($cookie);
-
-    } catch (AuthException $e) {
-        return response()->json(['error' => 'The provided credentials do not match our records.'], 422);
-    } catch (FirebaseException $e) {
-        return response()->json(['error' => 'An error occurred with Firebase Authentication.'], 422);
-    } catch (Exception $e) {
-        return response()->json(['error' => 'Access denied. Only administrators can login here.'], 403);
     }
-}
     //Logout del admin
     public function logout(Request $request)
     {
@@ -87,7 +88,7 @@ class AdminController extends Controller
     public function index()
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
-        return view('admin.index', compact('admins'));
+        return view('manager.admin-list', compact('admins')); // Asegúrate de que el nombre de la vista sea correcto.
     }
 
     // Store a newly created admin
@@ -141,7 +142,7 @@ class AdminController extends Controller
     public function edit($id)
     {
         $admin = $this->database->getReference('admins')->getChild($id)->getValue();
-        return view('admin.edit', compact('admin', 'id'));
+        return view('manager.admin-edit', compact('admin', 'id'));
     }
 
 
@@ -149,12 +150,24 @@ class AdminController extends Controller
     // Update an existing admin
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:admins,email,' . $id,
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
+        // Primero, obtener todos los admins excepto el actual
+        $adminsSnapshot = $this->database->getReference('admins')->getSnapshot();
+        $admins = $adminsSnapshot->getValue();
 
+        // Verificar si el email ya existe
+        $emailExists = false;
+        foreach ($admins as $adminId => $admin) {
+            if ($adminId != $id && $admin['email'] == $request->email) {
+                $emailExists = true;
+                break;
+            }
+        }
+
+        if ($emailExists) {
+            return redirect()->back()->with('error', 'The email has already been taken.');
+        }
+
+        // Continuar con la actualización si el email es único
         $adminData = [
             'name' => $request->name,
             'email' => $request->email,
@@ -165,14 +178,11 @@ class AdminController extends Controller
             $this->auth->changeUserPassword($id, $request->password);
         }
 
-        $this->logAction(auth()->user()->id, 'create', $id, 'admin');
-
         $this->database->getReference('admins/' . $id)->update($adminData);
 
-        $this->logAction(auth()->user()->id, 'update', $id, 'admin');
-
-        return redirect()->route('admin.index')->with('success', 'Admin updated successfully.');
+        return redirect()->route('manager.admin-list')->with('success', 'Admin updated successfully.');
     }
+
 
     // Delete an existing admin
     public function destroy($id)
@@ -180,9 +190,9 @@ class AdminController extends Controller
         $this->database->getReference('admins/' . $id)->remove();
         $this->auth->deleteUser($id);
 
-        $this->logAction(auth()->user()->id, 'delete', $id, 'admin');
+        // $this->logAction(auth()->user()->id, 'delete', $id, 'admin');
 
-        return redirect()->route('admin.index')->with('success', 'Admin deleted successfully.');
+        return redirect()->route('manager.admin-list')->with('success', 'Admin deleted successfully.');
     }
 
     // Manager activate an admin account
@@ -192,7 +202,7 @@ class AdminController extends Controller
         $admin['is_active'] = true;
         $this->database->getReference('admins/' . $id)->set($admin);
 
-        return redirect()->route('admin.index')->with('success', 'Admin activated successfully.');
+        return redirect()->route('manager.admin-list')->with('success', 'Admin activated successfully.');
     }
 
     public function pendingActivation()

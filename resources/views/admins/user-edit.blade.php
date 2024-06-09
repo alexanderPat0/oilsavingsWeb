@@ -44,11 +44,55 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success">Save</button>
-                    <a href="{{ route('users.index') }}" class="btn btn-danger">Back</a>
+                    <button id="saveButton" type="submit" class="btn btn-success">Save</button>
+                    <a href="{{ route('admins.user-list') }}" class="btn btn-danger">Back</a>
                 </div>
             </div>
         </div>
     </form>
-</div>
+    </div>
+@stop
+
+@section('css')
+@parent
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@stop
+
+@section('js')
+@parent
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        $('#saveButton').prop('disabled', true);
+        var initialValues = {};
+        $('input, select, textarea').each(function () {
+            initialValues[$(this).attr('name')] = $(this).val();
+        });
+
+        function checkFormChanges() {
+            var isChanged = false;
+            $('input, select, textarea').each(function () {
+                if (initialValues[$(this).attr('name')] !== $(this).val()) {
+                    isChanged = true;
+                }
+            });
+            $('#saveButton').prop('disabled', !isChanged);
+        }
+
+        $('input, select, textarea').on('change input', checkFormChanges);
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        var errorMessage = "{{ session('error') ? session('error') : '' }}";
+        errorMessage = errorMessage.replace(/\\'/g, "\\'");
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: errorMessage,
+            });
+        }
+    });
+</script>
 @stop

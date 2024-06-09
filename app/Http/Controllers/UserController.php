@@ -23,38 +23,17 @@ class UserController extends Controller
         $this->auth = $firebase->createAuth();
     }
 
-    public function indexUsers()
+    public function index()
     {
-        $allUsers = $this->database->getReference('users')->getSnapshot()->getValue();
-        $users = $this->filterUsersByRole($allUsers, 'user');
-
-        return view('user-list')->with(['users' => $users, 'role' => 'User']);
+        $users = $this->database->getReference('users')->getSnapshot()->getValue();
+        return view('admins.user-list', compact('users'));
     }
 
-    public function indexAdmins()
-    {
-        $allUsers = $this->database->getReference('users')->getSnapshot()->getValue();
-        $admins = $this->filterUsersByRole($allUsers, 'admin');
-
-        return view('user-list')->with(['users' => $admins, 'role' => 'Admin']);
-    }
-
-    private function filterUsersByRole($users, $role)
-    {
-        return array_filter($users, function ($user) use ($role) {
-            return isset($user['role']) && $user['role'] === $role;
-        });
-    }
-
-    public function create()
-    {
-        return view('user-form')->with(['id' => null]);
-    }
 
     public function edit($id)
     {
         $user = $this->database->getReference('users')->getChild($id)->getValue();
-        return view('user-form')->with(['user' => $user, 'id' => $id]);
+        return view('admins.user-edit')->with(['user' => $user, 'id' => $id]);
     }
 
     public function update(Request $request, $id)
@@ -62,9 +41,9 @@ class UserController extends Controller
         $this->database->getReference('users/' . $id)->update($request->except(['_token', '_method']));
 
         // AUTH FUERA DE FIREBASE
-        $this->logAction(DefAuth::user()->uid, 'update', $id, 'user');
+        // $this->logAction(DefAuth::user()->uid, 'update', $id, 'user');
 
-        return redirect()->route('users.indexUsers');
+        return redirect()->route('admins.user-list');
     }
 
     public function destroy($id)
@@ -74,9 +53,9 @@ class UserController extends Controller
 
 
         // AUTH FUERA DE FIREBASE
-        $this->logAction(DefAuth::user()->uid, 'delete', $id, 'user');
+        // $this->logAction(DefAuth::user()->uid, 'delete', $id, 'user');
 
-        return redirect()->route('users.indexUsers');
+        return redirect()->route('admins.user-list');
     }
 
     private function logAction($adminId, $actionType, $targetId, $targetType)
