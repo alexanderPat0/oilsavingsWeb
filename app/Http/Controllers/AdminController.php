@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Kreait\Firebase\Auth\CreateSessionCookie\FailedToCreateSessionCookie;
+use Kreait\Firebase\Exception\AuthException;
+use Kreait\Firebase\Exception\FirebaseException;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -33,36 +35,45 @@ class AdminController extends Controller
 
     //Login as admin
     public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        try {
-            $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
-            $idToken = $signInResult->idToken();
+    try {
+        $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
+        $user = $signInResult->data(); 
+        Log::info('DATOS DEL USUARIO: ' . $user);
 
-            //Para cuando Félix corrija, para comprobar la seguridad de la aplicación mediante la persistencia de cookies, voy a poner que las cookies caduquen cada 5 minutos, $fiveMinutes 
-            $fiveMinutes = 300;
-            //Si es muy molesto cambiar a este que es para una semana.
-            $oneWeek = new \DateInterval('P7D');
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, $fiveMinutes);
+        $adminRef = $this->database->getReference('admins/' . $user['localId']);
+        $admin = $adminRef->getValue();
 
-            //Cookies praa 5 minutos 
-            $cookie = cookie('session', $sessionCookieString, 5, null, null, true, true, false, 'Strict');
-
-            //Cookies para 1 semana 
-            $cookie = cookie('session', $sessionCookieString, 60 * 24 * 7, null, null, true, true, false, 'Strict');
-
-            return redirect('/users')->withCookie($cookie);
-        } catch (\Kreait\Firebase\Exception\AuthException $e) {
-            return back()->withErrors(['email' => 'The provided credentials do not match our records.']);
-        } catch (\Kreait\Firebase\Exception\FirebaseException $e) {
-            return back()->withErrors(['firebase' => 'An error occurred with Firebase Authentication.']);
+        if (is_null($admin)) {
+            throw new Exception("User is not an admin."); 
         }
-    }
 
+        $idToken = $signInResult->idToken();
+        $fiveMinutes = 300; // Cookies para 5 minutos
+
+        $sessionCookieString = $this->auth->createSessionCookie($idToken, $fiveMinutes);
+
+        // Prepara y envía la cookie como parte de la respuesta JSON
+        $cookie = cookie('session', $sessionCookieString, 5, null, null, true, true, false, 'Strict');
+        
+        return response()->json([
+            'success' => true,
+            'redirect_url' => '/users'
+        ])->withCookie($cookie);
+
+    } catch (AuthException $e) {
+        return response()->json(['error' => 'The provided credentials do not match our records.'], 422);
+    } catch (FirebaseException $e) {
+        return response()->json(['error' => 'An error occurred with Firebase Authentication.'], 422);
+    } catch (Exception $e) {
+        return response()->json(['error' => 'Access denied. Only administrators can login here.'], 403);
+    }
+}
     //Logout del admin
     public function logout(Request $request)
     {
@@ -102,26 +113,18 @@ class AdminController extends Controller
 
             // Guardar datos en pending_activation con UID
             $this->database->getReference('pending_activation/' . $uid)->set([
+                'admin_id' => $createdUser->uid,
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'is_active' => false,
                 'activatedAt' => '',
                 'is_verified' => false,
-                'verifiedAt' => '',
+                'verified_at' => '',
                 'created_at' => now()->toString(),
             ]);
 
-            // Generar el link de verificación
-            // $verificationLink = $this->auth->getEmailVerificationLink($request->email) . '&id=' . $uid;
-
-            // Generar el link de verificación
-            $verificationLink1 = $this->auth->getEmailVerificationLink($request->email);
-            // http://localhost:8000/email/verify
-            // Pasar el UID en el link de verificación
-            Log::info('LINK DE VERIFICACIÓN 1: ' . $verificationLink1);
-            $verificationLink = $verificationLink1 . '&id=' . $uid;
-            Log::info('LINK DE VERIFICACIÓN: ' . $verificationLink);
+            $verificationLink = $this->auth->getEmailVerificationLink($request->email) . '&id=' . $uid;
             Mail::to($request->email)->send(new SendVerificationEmail($verificationLink, $userProperties['displayName'], $uid));
 
             return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);

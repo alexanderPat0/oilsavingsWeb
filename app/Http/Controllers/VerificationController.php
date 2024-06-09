@@ -34,14 +34,17 @@ class VerificationController extends Controller
         $adminRef = $this->database->getReference('pending_activation/' . $id);
         $admin = $adminRef->getValue();
 
-        if (!$admin || isset($admin['email_verified_at'])) {
+        if (!$admin || (!empty($admin['email_verified_at']) && $admin['email_verified_at'] != '')) {
             return redirect()->route('home')->with('error', 'Email already verified or user not found.');
         }
 
         $this->auth->updateUser($id, ['emailVerified' => true]);
-        $admin['email_verified_at'] = now()->timestamp;
-        $adminRef->set($admin);
+        $admin['is_verified'] = true; 
+        $admin['email_verified_at'] = now()->toString(); 
+
+        $adminRef->update($admin);
 
         return redirect()->route('home')->with('success', 'Email verified successfully. Welcome!');
     }
+
 }

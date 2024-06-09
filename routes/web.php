@@ -10,7 +10,12 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+
 Route::get('/email/verify', [VerificationController::class, 'verify'])->name('intermediate.verify');
+Route::post('/admin/register', [AdminController::class, 'store'])->name('admin.store');
+Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login');
+
 
 //Aqui solo van las rutas que ejerce el gerente/manager/superadmin, lo que sea
 Route::get('admins', [AdminController::class, 'index'])->name('admin.index');
@@ -22,7 +27,8 @@ Route::post('/manager/activations/send/{id}', [AdminController::class, 'sendActi
 Route::get('/manager/activations', [AdminController::class, 'pendingActivation'])->name('manager.activations');
 
 
-Route::post('/admin/register', [AdminController::class, 'store'])->name('admin.store');
+
+
 
 Route::get('users', [UserController::class, 'indexUsers'])->name('users.index');
 Route::get('users/create', [UserController::class, 'create'])->name('users.create');

@@ -85,30 +85,37 @@
                     return { email: email, password: password };
                 },
             }).then((result) => {
+                if (!result.isConfirmed) return;
+
                 const { email, password } = result.value;
 
-                // Usar Firebase para autenticar al usuario
-                firebase
-                    .auth()
-                    .signInWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Usuario autenticado
+                $.ajax({
+                    url: '/admin/login',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        email: email,
+                        password: password,
+                    },
+                    success: function (response) {
                         Swal.fire({
                             position: "top-end",
                             icon: "success",
-                            title: "Your work has been saved",
+                            title: "Welcome!",
                             showConfirmButton: false,
-                            timer: 1500,
+                            timer: 1500
                         });
-                        setTimeout(() => {
-                            window.location.href = "/users"; // Redirecciona a '/users' después de 2 segundos
-                        }, 2000); // Espera 2 segundos antes de redirigir
-                    })
-                    .catch((error) => {
-                        var errorCode = error.code;
-                        var errorMessage = error.message;
-                        Swal.showValidationMessage(`Login failed: ${errorMessage}`);
-                    });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to Login',
+                            text: jqXHR.responseJSON.message || 'There was a problem while logging in.'
+                        });
+                    }
+                });
             });
         });
         // Escuchador para el botón de Register

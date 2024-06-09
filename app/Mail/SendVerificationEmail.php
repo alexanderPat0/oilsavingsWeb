@@ -24,13 +24,12 @@ class SendVerificationEmail extends Mailable
 
     public function build()
     {
-        Log::info('This is some useful information.');
         return $this->view('emails.verify-email')
             ->subject('Verify Your Email Address')
             ->with([
                 'verificationLink' => $this->verificationLink,
                 'name' => $this->name,
-                'uid' => $this->uid // Pasar UID a la vista
+                'uid' => $this->uid,
             ]);
     }
 
