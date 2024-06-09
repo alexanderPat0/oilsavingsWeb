@@ -8,7 +8,7 @@ use Kreait\Firebase\Auth;
 
 class VerificationController extends Controller
 {
-   
+
     protected $auth;
     protected $database;
 
@@ -22,20 +22,26 @@ class VerificationController extends Controller
         $this->auth = $firebase->createAuth();
     }
 
-
-    public function verify($id)
+    // Cambio aquí: Utiliza el objeto Request para obtener el ID
+    public function verify(Request $request)
     {
-        $adminRef = $this->database->getReference('admins/' . $id);
-        $admin = $adminRef->getValue();
+        $id = $request->query('id'); // Obtiene el ID desde el parámetro de URL
 
-        if (!$admin['email_verified_at']) {
-            $this->auth->updateUser($id, ['emailVerified' => true]);
-            $admin['email_verified_at'] = now()->timestamp;
-            $adminRef->set($admin);
-
-            return redirect()->route('login')->with('success', 'Email verified successfully. You can now login.');
+        if (is_null($id)) {
+            return redirect()->route('login')->with('error', 'Invalid request, no user ID provided.');
         }
 
-        return redirect()->route('login')->with('error', 'Email already verified.');
+        $adminRef = $this->database->getReference('pending_activation/' . $id);
+        $admin = $adminRef->getValue();
+
+        if (!$admin || isset($admin['email_verified_at'])) {
+            return redirect()->route('home')->with('error', 'Email already verified or user not found.');
+        }
+
+        $this->auth->updateUser($id, ['emailVerified' => true]);
+        $admin['email_verified_at'] = now()->timestamp;
+        $adminRef->set($admin);
+
+        return redirect()->route('home')->with('success', 'Email verified successfully. Welcome!');
     }
 }

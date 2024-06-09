@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use App\Jobs\SendVerificationEmailJob;
 use App\Mail\SendVerificationEmail;
 use App\Mail\VerifyEmail;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Kreait\Firebase\Auth\CreateSessionCookie\FailedToCreateSessionCookie;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cookie;
+
 
 class AdminController extends Controller
 {
@@ -27,17 +31,52 @@ class AdminController extends Controller
         $this->auth = $firebase->createAuth();
     }
 
+    //Login as admin
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        try {
+            $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
+            $idToken = $signInResult->idToken();
+
+            //Para cuando Félix corrija, para comprobar la seguridad de la aplicación mediante la persistencia de cookies, voy a poner que las cookies caduquen cada 5 minutos, $fiveMinutes 
+            $fiveMinutes = 300;
+            //Si es muy molesto cambiar a este que es para una semana.
+            $oneWeek = new \DateInterval('P7D');
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, $fiveMinutes);
+
+            //Cookies praa 5 minutos 
+            $cookie = cookie('session', $sessionCookieString, 5, null, null, true, true, false, 'Strict');
+
+            //Cookies para 1 semana 
+            $cookie = cookie('session', $sessionCookieString, 60 * 24 * 7, null, null, true, true, false, 'Strict');
+
+            return redirect('/users')->withCookie($cookie);
+        } catch (\Kreait\Firebase\Exception\AuthException $e) {
+            return back()->withErrors(['email' => 'The provided credentials do not match our records.']);
+        } catch (\Kreait\Firebase\Exception\FirebaseException $e) {
+            return back()->withErrors(['firebase' => 'An error occurred with Firebase Authentication.']);
+        }
+    }
+
+    //Logout del admin
+    public function logout(Request $request)
+    {
+        // Eliminar la cookie de sesión del lado del servidor
+        $cookie = Cookie::forget('session');
+        // Redireccionar al usuario a la página de login o de inicio
+        return redirect('/')->withCookie($cookie);
+    }
+
     // Display list of admins
     public function index()
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
         return view('admin.index', compact('admins'));
-    }
-
-    // Show form to create a new admin
-    public function create()
-    {
-        return view('admin.create');
     }
 
     // Store a newly created admin
@@ -56,31 +95,44 @@ class AdminController extends Controller
             'displayName' => $request->name,
         ];
 
+        try {
+            // Crear usuario en Firebase Auth y obtener el UID
+            $createdUser = $this->auth->createUser($userProperties);
+            $uid = $createdUser->uid; // UID del usuario creado
 
-        // $adminData = [
-        //     'adminId' => $createdUser->uid,
-        //     'email' => $request->email,
-        //     'email_verified' => false,
-        //     'email_verified_at' => '',
-        //     'is_active' => false,
-        //     'is_super_admin' => false,
-        //     'name' => $request->name,
-        //     'password' => Hash::make($request->password),
-        //     'remember_token' => Str::random(10),
+            // Guardar datos en pending_activation con UID
+            $this->database->getReference('pending_activation/' . $uid)->set([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'is_active' => false,
+                'activatedAt' => '',
+                'is_verified' => false,
+                'verifiedAt' => '',
+                'created_at' => now()->toString(),
+            ]);
 
+            // Generar el link de verificación
+            // $verificationLink = $this->auth->getEmailVerificationLink($request->email) . '&id=' . $uid;
 
-        // ];
-        $createdUser = $this->auth->createUser($userProperties);
+            // Generar el link de verificación
+            $verificationLink1 = $this->auth->getEmailVerificationLink($request->email);
+            // http://localhost:8000/email/verify
+            // Pasar el UID en el link de verificación
+            Log::info('LINK DE VERIFICACIÓN 1: ' . $verificationLink1);
+            $verificationLink = $verificationLink1 . '&id=' . $uid;
+            Log::info('LINK DE VERIFICACIÓN: ' . $verificationLink);
+            Mail::to($request->email)->send(new SendVerificationEmail($verificationLink, $userProperties['displayName'], $uid));
 
+            return response()->json(['success' => true, 'message' => 'Admin registered and email sent.']);
 
-        $pendingRef = $this->database->getReference('pending_activation')->push([
-            'email' => $request->email,
-            'is_sent' => false,
-            'created_at' => now()->toString(),
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'Admin registered, admin activation pending.']);
+        } catch (\Kreait\Firebase\Exception\Auth\EmailExists $e) {
+            return response()->json(['success' => false, 'message' => 'Email already exists.'], 409);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Registration failed.', 'error' => $e->getMessage()], 500);
+        }
     }
+
 
     // Edit an existing admin
     public function edit($id)
@@ -130,7 +182,7 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin deleted successfully.');
     }
 
-    // Activate an admin account
+    // Manager activate an admin account
     public function activate($id)
     {
         $admin = $this->database->getReference('admins')->getChild($id)->getValue();
@@ -140,31 +192,13 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin activated successfully.');
     }
 
-    public function sendActivation($id)
-{
-    try {
-        $pending = $this->database->getReference('pending_activation/' . $id)->getSnapshot()->getValue();
-        $verificationLink = $this->auth->getEmailVerificationLink($pending['email']);
-        Mail::to($pending['email'])->send(new SendVerificationEmail($verificationLink));
-
-        // Marcar como enviado
-        $this->database->getReference('pending_activation/' . $id)->update(['is_sent' => true]);
-
-        return response()->json(['success' => true, 'message' => 'Verification link sent.']);
-    } catch (\Exception $e) {
-        Log::error('Failed to send verification link: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to send the link.']);
-    }
-}
-
-
     public function pendingActivation()
     {
-        $pendingActivation = $this->database->getReference('pending_activation')  // Asegúrate que la ruta sea correcta
-        ->orderByChild('is_sent')
-        ->equalTo(false)
-        ->getSnapshot()
-        ->getValue();
+        $pendingActivation = $this->database->getReference('pending_activation')
+            ->orderByChild('is_sent')
+            ->equalTo(false)
+            ->getSnapshot()
+            ->getValue();
 
         return view('manager.activations', ['pendings' => $pendingActivation]);
     }

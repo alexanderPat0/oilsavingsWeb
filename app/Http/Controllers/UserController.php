@@ -51,32 +51,6 @@ class UserController extends Controller
         return view('user-form')->with(['id' => null]);
     }
 
-    // public function store(Request $request)
-    // {
-    //     $userProperties = [
-    //         'email' => $request->email,
-    //         'emailVerified' => false,
-    //         'password' => $request->password,
-    //         'displayName' => $request->username,
-    //     ];
-
-    //     $createdUser = $this->auth->createUser($userProperties);
-
-    //     $userData = [
-    //         'username' => $request->username,
-    //         'email' => $request->email,
-    //         'mainFuel' => $request->mainFuel,
-    //     ];
-
-    //     $this->database->getReference('users/' . $createdUser->uid)->set($userData);
-
-
-    //     // AUTH FUERA DE FIREBASE
-    //     $this->logAction(Auth::user()->uid, 'create', $createdUser->uid, 'user');
-
-    //     return redirect()->route('users.indexUsers');
-    // }
-
     public function edit($id)
     {
         $user = $this->database->getReference('users')->getChild($id)->getValue();
