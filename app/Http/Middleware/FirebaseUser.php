@@ -39,19 +39,14 @@ class FirebaseUser
             $uid = $verifiedSessionCookie->claims()->get('sub');
 
             $user = $this->auth->getUser($uid);
-            $request->attributes->set('firebaseUser', $user);
 
-            // Modify menu configuration here if needed
-            config([
-                'adminlte.menu' => [
-                    [
-                        'text' => $user->displayName ?? 'User Profile',
-                        'url'  => 'profile',
-                        'topnav_right' => true,
-                        'icon' => 'fas fa-fw fa-user',
-                    ],
-                ]
-            ]);
+            // $menuService = new \App\Services\MenuService();
+            // $menu = $menuService->getMenuForUser($user->displayName ,1);
+            // config(['adminlte.menu' => $menu]);
+            
+            $menuService = new \App\Services\MenuService();
+            $menu = $menuService->getMenuForEveryone();
+            config(['adminlte.menu' => $menu]);
 
             return $next($request);
         } catch (AuthException $e) {

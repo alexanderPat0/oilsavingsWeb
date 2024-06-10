@@ -59,6 +59,16 @@ class EnsureIsSuperAdmin
                 return redirect('/')->with('error', "You can't access here!");
             }
 
+            // $menuService = new \App\Services\MenuService();
+            // $menu = $menuService->getMenuForUser($admin['name'] ,2);
+            // config(['adminlte.menu' => $menu]);
+
+
+            $menuService = new \App\Services\MenuService();
+            $menu = $menuService->getMenuForEveryone();
+            config(['adminlte.menu' => $menu]);
+
+
             return $next($request);
         } catch (AuthException $e) {
             Log::info('Usuario no es un superadministrador.');

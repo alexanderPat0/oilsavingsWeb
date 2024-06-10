@@ -30,10 +30,10 @@
                         <td>{{ $admin['email'] }}</td>
                         <td>{{ $admin['is_super_admin'] ? 'Sí' : 'No' }}</td>
                         <td>
-                            <a href="{{ route('manager.admin-edit', ['admin' => $admin['id']]) }}"
+                            <a href="{{ route('manager.admin-edit', ['admin' => $admin['adminId']]) }}"
                                 class="btn btn-success btn-sm btn-rounded">Edit</a>
-                            <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $admin['id'] }}"
-                                data-url="{{ route('manager.admin-destroy', ['admin' => $admin['id']]) }}">Delete</button>
+                            <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $admin['adminId'] }}"
+                                data-url="{{ route('manager.admin-destroy', ['admin' => $admin['adminId']]) }}">Delete</button>
                         </td>
                     </tr>
                     </tr>
@@ -54,7 +54,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $('.delete-button').on('click', function () {
-        var userId = $(this).data('id');
+        var id = $(this).data('id');
         var url = $(this).data('url');  // No necesitas construir la URL aquí, ya está predefinida
 
         Swal.fire({

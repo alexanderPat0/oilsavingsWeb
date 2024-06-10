@@ -336,6 +336,12 @@ return [
             'icon' => 'fa fa-users',
 
         ],
+        [
+            'text' => ' Reviews',
+            'url' => 'reviews',
+            'icon' => 'fa fa-comments',
+
+        ],
         // 'label' => 4,
         // 'label_color' => 'success',
         // " style="color: #f2f2f2;"></i>

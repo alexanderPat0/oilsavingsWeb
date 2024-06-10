@@ -21,9 +21,8 @@ Route::any('/logout', [AdminController::class, 'logout'])->name('logout');
 
 
 // Aplicar FirebaseUser Middleware a todas las rutas relevantes
-
 // Aquí solo van las rutas que ejerce el gerente/manager/superadmin, lo que sea
-Route::middleware([EnsureIsSuperAdmin::class, FirebaseUser::class])->group(function () {
+Route::middleware([FirebaseUser::class, EnsureIsSuperAdmin::class])->group(function () {
     Route::get('/admins', [AdminController::class, 'index'])->name('manager.admin-list');
     Route::get('/admins/{admin}/edit', [AdminController::class, 'edit'])->name('manager.admin-edit');
     Route::put('/admins/{admin}', [AdminController::class, 'update'])->name('manager.admin-update');
@@ -42,6 +41,7 @@ Route::middleware([EnsureIsSuperAdmin::class, FirebaseUser::class])->group(funct
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admins.user-destroy')->withoutMiddleware([EnsureIsSuperAdmin::class]);
 });
 
+//Aqui las rutas de las reviews para que cualquier usuario, logueado o no, pueda verlas.
 
 // Llamar a esta URL en caso de que se elimine el admin principal.
 // Route::get('createSuperAdmin', [AdminController::class, 'createSuperAdmin']);

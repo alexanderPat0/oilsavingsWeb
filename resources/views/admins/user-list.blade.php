@@ -19,7 +19,9 @@
           <th>Username</th>
           <th>Email</th>
           <th>Main Fuel</th>
-          <th>Acciones</th>
+          <th>Logs</th>
+          <th>Can review?</th>
+        </tr>
         </tr>
       </thead>
       <tbody>
@@ -34,6 +36,7 @@
           class="btn btn-success btn-sm btn-rounded">Edit</a>
         <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $user['id'] }}"
           data-url="{{ route('admins.user-destroy', ['user' => $user['id']]) }}">Delete</button>
+          
         </td>
       </tr>
     @endforeach
