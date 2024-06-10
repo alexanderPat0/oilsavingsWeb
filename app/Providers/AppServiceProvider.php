@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('Firebase\Auth', function ($app) {
             $firebase = (new Factory)
                 ->withServiceAccount(base_path(env('FIREBASE_CREDENTIALS')));
-                
+
             return $firebase->createAuth();
         });
     }
@@ -26,8 +27,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot()
+    public function boot(UrlGenerator $url)
     {
-        // 
+        if (env('APP_ENV') == 'production') {
+            $url->forceScheme('https');
+        }
     }
 }
