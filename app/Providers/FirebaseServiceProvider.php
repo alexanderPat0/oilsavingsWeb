@@ -5,18 +5,20 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
 
+
 class FirebaseServiceProvider extends ServiceProvider
 {
     public function register()
     {
         $this->app->singleton('firebase', function ($app) {
-            $serviceAccountPath = config('services.firebase.credentials');
-            return (new Factory)->withServiceAccount($serviceAccountPath)->create();
-        });
-    }
+            $cacheStore = cache()->store();
 
-    public function boot()
-    {
-        //
+            $firebase = (new Factory)
+                ->withServiceAccount(config('services.firebase.credentials')
+                ->withDatabaseUri('services.firebase.database'));
+
+            return $firebase->createFirestore();
+
+        });
     }
 }

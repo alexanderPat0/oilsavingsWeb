@@ -17,6 +17,7 @@ class User
         'role',
         'remember_token',
         'deleted',
+        'can_review',
     ];
 
     protected $hidden = [
