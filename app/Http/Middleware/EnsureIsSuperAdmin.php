@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\FirebaseException;
 use Kreait\Firebase\Factory;
@@ -32,13 +33,14 @@ class EnsureIsSuperAdmin
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle($request, Closure $next): Response
     {
         try {
             // Obtiene el token de la cookie
             $sessionCookie = $request->cookies->get('session');
             if (!$sessionCookie) {
-                throw new \Exception("No session found.");
+                Log::info('No se ha iniciado sesión para superadmin.');
+                return redirect('/')->with('error', "You haven't logged in." );
             }
 
             // Decodifica el token para obtener el UID del usuario
@@ -48,14 +50,19 @@ class EnsureIsSuperAdmin
             // Verifica si el UID corresponde a un superadmin
             $adminRef = $this->database->getReference('admins/' . $uid);
             $admin = $adminRef->getValue();
-            if (is_null($admin) || !$admin['is_super_admin']) {
-                throw new \Exception("Access denied.");
+            if (is_null($admin)){
+                Log::info('No se ha iniciado sesión para superadmin.');
+                return redirect('/')->with('error', "You haven't logged in." );
+            }
+            if (!$admin['is_super_admin']){
+                Log::info('Usuario no es un superadministrador.');
+                return redirect('/')->with('error', "You can't access here!");
             }
 
-            // Permite que la solicitud continúe
             return $next($request);
         } catch (AuthException $e) {
-            return response()->json(['error' => 'Authentication error: ' . $e->getMessage()], 403);
+            Log::info('Usuario no es un superadministrador.');
+            return redirect('/')->with(['error', 'Firebase error: ' . $e->getMessage()], 403);
         } catch (FirebaseException $e) {
             return response()->json(['error' => 'Firebase error: ' . $e->getMessage()], 403);
         } catch (\Exception $e) {

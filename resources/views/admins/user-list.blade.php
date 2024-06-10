@@ -23,21 +23,24 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($users as $id => $user)
+        @foreach($users as $user)
       <tr>
-        <i class="fas fa-house"></i>
         <td>{{ $user['id'] }}</td>
         <td>{{ $user['username'] }}</td>
         <td>{{ $user['email'] }}</td>
         <td>{{ $user['mainFuel'] }}</td>
         <td>
-        <a href="{{ route('admins.user-edit', ['user' => $id]) }}"
+        <a href="{{ route('admins.user-edit', ['user' => $user['id']]) }}"
           class="btn btn-success btn-sm btn-rounded">Edit</a>
-        <a href="{{ route('admins.user-destroy', ['user' => $id]) }}" class="btn btn-danger btn-sm btn-rounded"
-          onclick="return confirm('Are you sure?')">Delete</a>
+        <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $user['id'] }}"
+          data-url="{{ route('admins.user-destroy', ['user' => $user['id']]) }}">Delete</button>
         </td>
       </tr>
     @endforeach
+        <form id="delete-form" action="" method="POST" style="display: none;">
+          @csrf
+          @method('DELETE')
+        </form>
       </tbody>
     </table>
   </div>
@@ -45,33 +48,29 @@
 @stop
 
 @section('css')
-@parent
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @stop
 
 @section('js')
-@parent
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  $(document).ready(function () {
-    console.log("sessionStorage value:", sessionStorage.getItem('justLoggedIn'));
-    if (sessionStorage.getItem('justLoggedIn') === 'true') {
-      console.log("Showing Swal");
-      Swal.fire({
-        width: 300,
-        padding: "3em",
-        color: "#716add",
-        position: "top-end",
-        icon: "success",
-        title: "Correctly logged in!",
-        showConfirmButton: false,
-        timer: 1500,
-        backdrop: `
-          rgba(145,145,145,0.4)
-        `
-      });
-      sessionStorage.removeItem('justLoggedIn');
-    }
+  $('.delete-button').on('click', function () {
+    var userId = $(this).data('id');
+    var url = $(this).data('url');  // No necesitas construir la URL aquí, ya está predefinida
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $('#delete-form').attr('action', url).submit();
+      }
+    });
   });
 </script>
 @stop

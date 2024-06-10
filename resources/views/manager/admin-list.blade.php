@@ -30,12 +30,12 @@
                         <td>{{ $admin['email'] }}</td>
                         <td>{{ $admin['is_super_admin'] ? 'Sí' : 'No' }}</td>
                         <td>
-                            <a href="{{ route('manager.admin-edit', ['admin' => $id]) }}"
+                            <a href="{{ route('manager.admin-edit', ['admin' => $admin['id']]) }}"
                                 class="btn btn-success btn-sm btn-rounded">Edit</a>
-                            <a href="{{ route('manager.admin-destroy', ['admin' => $id]) }}"
-                                class="btn btn-danger btn-sm btn-rounded"
-                                onclick="return confirm('Are you sure?')">Delete</a>
+                            <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $admin['id'] }}"
+                                data-url="{{ route('manager.admin-destroy', ['admin' => $admin['id']]) }}">Delete</button>
                         </td>
+                    </tr>
                     </tr>
                 @endforeach
             </tbody>
@@ -53,8 +53,23 @@
 @parent
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function () {
+    $('.delete-button').on('click', function () {
+        var userId = $(this).data('id');
+        var url = $(this).data('url');  // No necesitas construir la URL aquí, ya está predefinida
 
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#delete-form').attr('action', url).submit();
+            }
+        });
     });
 </script>
 @stop

@@ -259,7 +259,7 @@ return [
     'use_route_url' => false,
     'dashboard_url' => 'home',
     'logout_url' => 'logout',
-    'login_url' => 'login',
+    'login_url' => '/admin/login',
     'register_url' => 'register',
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
@@ -295,14 +295,16 @@ return [
 
     'menu' => [
         // Navbar items:
-        // [
-        //     'type' => 'navbar-search',
-        //     'text' => 'search',
-        //     'topnav_right' => true,
-        // ],
+        
         [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
+        ],
+        [
+            'text' => 'Your profile',
+            'url'  => 'profile',
+            'topnav_right' => true,
+            'icon' => 'fas fa-fw fa-user',
         ],
 
         // Sidebar items:

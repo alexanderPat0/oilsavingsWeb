@@ -49,17 +49,18 @@ class AdminController extends Controller
             $admin = $adminRef->getValue();
 
             if (is_null($admin)) {
-                throw new Exception("User is not an admin.");
+                throw new Exception("User not found.");
             }
 
+
             $idToken = $signInResult->idToken();
-            $fiveMinutes = 300; // Cookies para 5 minutos
-            $oneWeek = 500; // Cookies para 5 minutos
-
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, $oneWeek);
-
-            // Prepara y envía la cookie como parte de la respuesta JSON
-            $cookie = cookie('session', $sessionCookieString, 500, null, null, true, true, false, 'Strict');
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600); 
+            $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true);
+    
+            $fiveMinutes = 300;
+            //Cookies que solo durarían 5 minutos para realizar pruebas.
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600); 
+            $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true, false, 'Strict');
 
             return response()->json([
                 'success' => true,
@@ -71,8 +72,8 @@ class AdminController extends Controller
         } catch (FirebaseException $e) {
             return response()->json(['error' => 'An error occurred with Firebase Authentication.'], 422);
         } catch (Exception $e) {
-            // Aquí capturas todas las otras excepciones que no son específicamente de Firebase
-            return response()->json(['error' => $e->getMessage()], 500); // Usamos el código de estado 500 para indicar un error del servidor
+            // Aquí capturo todas las otras excepciones que no son específicamente de Firebase
+            return response()->json(['error' => $e->getMessage()], 500); 
         }
     }
     //Logout del admin
@@ -88,7 +89,7 @@ class AdminController extends Controller
     public function index()
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
-        return view('manager.admin-list', compact('admins')); // Asegúrate de que el nombre de la vista sea correcto.
+        return view('manager.admin-list', compact('admins')); 
     }
 
     // Store a newly created admin

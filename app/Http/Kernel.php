@@ -8,7 +8,7 @@ use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
-    use App\Http\Middleware\EnsureIsSuperAdmin;
+use App\Http\Middleware\EnsureIsSuperAdmin;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
@@ -54,6 +54,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'superadmin' => EnsureIsSuperAdmin::class,
+        'firebase.user' => \App\Http\Middleware\FirebaseUser::class,
     ];
 
     /**
