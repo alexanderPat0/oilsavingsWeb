@@ -7,6 +7,11 @@ use App\Http\Middleware\EnsureIsSuperAdmin;
 use App\Http\Middleware\FirebaseUser;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/health', function () {
+    return response()->json(['status' => 'OK'], 200);
+});
+
 //Pantalla de inicio
 Route::get('/', function () {
     return view('welcome');
