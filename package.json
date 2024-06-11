@@ -2,7 +2,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.2",
