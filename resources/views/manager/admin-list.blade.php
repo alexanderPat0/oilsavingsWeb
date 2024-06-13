@@ -23,21 +23,28 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($admins as $id => $admin)
+                @if($admins)
+                    @foreach($admins as $id => $admin)
+                        <tr>
+                            <td>{{ $id }}</td>
+                            <td>{{ $admin['name'] }}</td>
+                            <td>{{ $admin['email'] }}</td>
+                            <td>{{ $admin['is_super_admin'] ? 'Sí' : 'No' }}</td>
+                            <td>
+                                <a href="{{ route('manager.admin-edit', ['admin' => $admin['adminId']]) }}"
+                                    class="btn btn-success btn-sm btn-rounded">Edit</a>
+                                <button class="btn btn-danger btn-sm btn-rounded delete-button"
+                                    data-id="{{ $admin['adminId'] }}"
+                                    data-url="{{ route('manager.admin-destroy', ['admin' => $admin['adminId']]) }}">Delete</button>
+                            </td>
+                        </tr>
+                        </tr>
+                    @endforeach
+                @else
                     <tr>
-                        <td>{{ $id }}</td>
-                        <td>{{ $admin['name'] }}</td>
-                        <td>{{ $admin['email'] }}</td>
-                        <td>{{ $admin['is_super_admin'] ? 'Sí' : 'No' }}</td>
-                        <td>
-                            <a href="{{ route('manager.admin-edit', ['admin' => $admin['adminId']]) }}"
-                                class="btn btn-success btn-sm btn-rounded">Edit</a>
-                            <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $admin['adminId'] }}"
-                                data-url="{{ route('manager.admin-destroy', ['admin' => $admin['adminId']]) }}">Delete</button>
-                        </td>
+                        <td>No administrators found.</td>
                     </tr>
-                    </tr>
-                @endforeach
+                @endif  
             </tbody>
         </table>
     </div>
@@ -71,12 +78,12 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: url,
-                    method: 'POST', 
+                    method: 'POST',
                     data: {
                         '_method': 'DELETE',
                         '_token': '{{ csrf_token() }}' 
                     },
-                    success: function(response) {
+                    success: function (response) {
                         var row = button.closest('tr');
                         row.remove();
                         Swal.fire({
@@ -89,7 +96,7 @@
                             color: "#716add",
                         });
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         Swal.fire('Error', 'Administrator could not be deleted.', 'error');
                     }
                 });

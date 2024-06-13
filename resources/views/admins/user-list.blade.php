@@ -19,26 +19,30 @@
           <th>Username</th>
           <th>Email</th>
           <th>Main Fuel</th>
-          <th>Logs</th>
-          <th>Can review?</th>
         </tr>
         </tr>
       </thead>
       <tbody>
-        @foreach($users as $user)
+        @if($users)
+      @foreach($users as $user)
       <tr>
-        <td>{{ $user['id'] }}</td>
-        <td>{{ $user['username'] }}</td>
-        <td>{{ $user['email'] }}</td>
-        <td>{{ $user['mainFuel'] }}</td>
-        <td>
-        <a href="{{ route('admins.user-edit', ['user' => $user['id']]) }}"
-          class="btn btn-success btn-sm btn-rounded">Edit</a>
-        <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $user['id'] }}"
-          data-url="{{ route('admins.user-destroy', ['user' => $user['id']]) }}">Delete</button>
-        </td>
+      <td>{{ $user['id'] }}</td>
+      <td>{{ $user['username'] }}</td>
+      <td>{{ $user['email'] }}</td>
+      <td>{{ $user['mainFuel'] }}</td>
+      <td>
+      <a href="{{ route('admins.user-edit', ['user' => $user['id']]) }}"
+        class="btn btn-success btn-sm btn-rounded">Edit</a>
+      <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $user['id'] }}"
+        data-url="{{ route('admins.user-destroy', ['user' => $user['id']]) }}">Delete</button>
+      </td>
       </tr>
     @endforeach
+    @else
+    <tr>
+      <td>No users found.</td>
+    </tr>
+  @endif
         <form id="delete-form" action="" method="POST" style="display: none;">
           @csrf
           @method('DELETE')

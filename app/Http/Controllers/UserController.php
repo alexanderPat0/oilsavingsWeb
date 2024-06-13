@@ -26,6 +26,9 @@ class UserController extends Controller
     public function index()
     {
         $users = $this->database->getReference('users')->getSnapshot()->getValue();
+        if (is_null($users)) {
+            $users = [];  // Asegura que $users es un array, incluso si no hay datos.
+        }    
         return view('admins.user-list', compact('users'));
     }
 

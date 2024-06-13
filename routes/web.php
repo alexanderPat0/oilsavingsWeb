@@ -47,15 +47,15 @@ Route::middleware([FirebaseUser::class, EnsureIsSuperAdmin::class])->group(funct
     //Eliminar usuario.
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admins.user-destroy')->withoutMiddleware([EnsureIsSuperAdmin::class]);
 
-
-
     //Eliminar reviews.
     Route::delete('/review/{review}', [ReviewController::class, 'destroy'])->name('users.review-destroy')->withoutMiddleware([EnsureIsSuperAdmin::class]);
+
+    //Crear review
+    Route::post('/review/create', [ReviewController::class, 'store'])->name('users.review-create')->withoutMiddleware([EnsureIsSuperAdmin::class]);
 
 });
 
 Route::get('/reviews', [ReviewController::class, 'index'])->name('users.review-list');
-Route::post('/review/create', [ReviewController::class, 'store'])->name('users.review-create');
 
 
 //Aqui las rutas de las reviews para que cualquier usuario, logueado o no, pueda verlas.
