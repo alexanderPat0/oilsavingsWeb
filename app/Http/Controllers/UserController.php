@@ -40,8 +40,6 @@ class UserController extends Controller
     {
         $this->database->getReference('users/' . $id)->update($request->except(['_token', '_method']));
 
-        // AUTH FUERA DE FIREBASE
-        // $this->logAction(DefAuth::user()->uid, 'update', $id, 'user');
 
         return redirect()->route('admins.user-list');
     }

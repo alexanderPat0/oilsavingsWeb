@@ -295,16 +295,22 @@ return [
 
     'menu' => [
         // Navbar items:
-        
+
         [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
         ],
         [
             'text' => 'Your profile',
-            'url'  => 'profile',
+            'url' => 'profile',
             'topnav_right' => true,
             'icon' => 'fas fa-fw fa-user',
+        ],
+        [
+            'text' => 'Log out',
+            'url' => 'logout',
+            'topnav_right' => true,
+            'icon' => 'fas fa-fw fa-sign-out',
         ],
 
         // Sidebar items:
@@ -323,46 +329,59 @@ return [
             'icon' => 'fa fa-home',
 
         ],
+        ['header' => 'Admins'],
         [
             'text' => ' Admin list',
             'url' => 'admins',
             'icon' => 'fa fa-user',
-
         ],
-
+        [
+            'text' => 'History log',
+            'url' => 'actions',
+        ],
+        [
+            'text' => 'Applications',
+            'url' => 'manager/activations',
+        ],
+        ['header' => 'Users'],
         [
             'text' => ' User list',
             'url' => 'users',
             'icon' => 'fa fa-users',
-
         ],
+        [
+            'text' => 'Restricted users',
+            'url' => '/banusers',
+        ],
+        ['header' => 'Reviews'],
         [
             'text' => ' Reviews',
             'url' => 'reviews',
             'icon' => 'fa fa-comments',
-
         ],
+        
+
         // 'label' => 4,
         // 'label_color' => 'success',
         // " style="color: #f2f2f2;"></i>
 
-        ['header' => 'labels'],
-        [
-            'text' => 'important',
-            'icon_color' => 'red',
-            'url' => '#',
-        ],
-        [
-            'text' => 'warning',
-            'icon_color' => 'yellow',
-            'url' => '#',
-        ],
-        [
-            'text' => 'information',
-            'icon_color' => 'cyan',
-            'url' => '#',
-        ],
-        
+        // ['header' => 'labels'],
+        // [
+        //     'text' => 'important',
+        //     'icon_color' => 'red',
+        //     'url' => '#',
+        // ],
+        // [
+        //     'text' => 'warning',
+        //     'icon_color' => 'yellow',
+        //     'url' => '#',
+        // ],
+        // [
+        //     'text' => 'information',
+        //     'icon_color' => 'cyan',
+        //     'url' => '#',
+        // ],
+
     ],
 
     /*

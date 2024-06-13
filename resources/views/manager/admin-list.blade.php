@@ -53,9 +53,11 @@
 @parent
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $('.delete-button').on('click', function () {
+    $('.delete-button').on('click', function (e) {
+        e.stopPropagation();
+        var button = $(this);
+        var url = button.data('url');
         var id = $(this).data('id');
-        var url = $(this).data('url');  // No necesitas construir la URL aquí, ya está predefinida
 
         Swal.fire({
             title: 'Are you sure?',
@@ -67,7 +69,30 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                $('#delete-form').attr('action', url).submit();
+                $.ajax({
+                    url: url,
+                    method: 'POST', 
+                    data: {
+                        '_method': 'DELETE',
+                        '_token': '{{ csrf_token() }}' 
+                    },
+                    success: function(response) {
+                        var row = button.closest('tr');
+                        row.remove();
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: "Deleted!",
+                            showConfirmButton: false,
+                            timer: 1500,
+                            padding: "3em",
+                            color: "#716add",
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire('Error', 'The user could not be deleted.', 'error');
+                    }
+                });
             }
         });
     });

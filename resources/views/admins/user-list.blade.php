@@ -36,7 +36,6 @@
           class="btn btn-success btn-sm btn-rounded">Edit</a>
         <button class="btn btn-danger btn-sm btn-rounded delete-button" data-id="{{ $user['id'] }}"
           data-url="{{ route('admins.user-destroy', ['user' => $user['id']]) }}">Delete</button>
-          
         </td>
       </tr>
     @endforeach
@@ -57,9 +56,11 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  $('.delete-button').on('click', function () {
-    var userId = $(this).data('id');
-    var url = $(this).data('url');  // No necesitas construir la URL aquí, ya está predefinida
+  $('.delete-button').on('click', function (e) {
+    e.stopPropagation();
+    var button = $(this);
+    var url = button.data('url');
+    var id = $(this).data('id');
 
     Swal.fire({
       title: 'Are you sure?',
@@ -71,9 +72,52 @@
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        $('#delete-form').attr('action', url).submit();
+        $.ajax({
+          url: url,
+          method: 'POST',
+          data: {
+            '_method': 'DELETE',
+            '_token': '{{ csrf_token() }}' 
+          },
+          success: function (response) {
+            // Elimina la fila de la tabla
+            var row = button.closest('tr');
+            row.remove();
+            Swal.fire({
+              position: "top-end",
+              icon: "success",
+              title: "Deleted!",
+              showConfirmButton: false,
+              timer: 1500,
+              padding: "3em",
+              color: "#716add",
+            });
+          },
+          error: function (xhr, status, error) {
+            Swal.fire('Error', 'The user could not be deleted.', 'error');
+          }
+        });
       }
     });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Comprueba si la página se ha cargado después de un inicio de sesión
+    if (sessionStorage.getItem('justLoggedIn') === 'true') {
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Welcome!",
+        showConfirmButton: false,
+        timer: 1500,
+        padding: "3em",
+        color: "#716add",
+        backdrop: `
+                  rgba(0,0,0,0.4)
+                `
+      });
+      sessionStorage.removeItem('justLoggedIn');
+    }
   });
 </script>
 @stop

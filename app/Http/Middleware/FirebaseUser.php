@@ -37,17 +37,7 @@ class FirebaseUser
         try {
             $verifiedSessionCookie = $this->auth->verifySessionCookie($sessionCookie, true);
             $uid = $verifiedSessionCookie->claims()->get('sub');
-
             $user = $this->auth->getUser($uid);
-
-            // $menuService = new \App\Services\MenuService();
-            // $menu = $menuService->getMenuForUser($user->displayName ,1);
-            // config(['adminlte.menu' => $menu]);
-            
-            $menuService = new \App\Services\MenuService();
-            $menu = $menuService->getMenuForEveryone();
-            config(['adminlte.menu' => $menu]);
-
             return $next($request);
         } catch (AuthException $e) {
             Log::error('Auth error: ' . $e->getMessage());

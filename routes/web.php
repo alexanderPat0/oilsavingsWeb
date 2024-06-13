@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Middleware\EnsureIsSuperAdmin;
@@ -28,6 +29,7 @@ Route::any('/logout', [AdminController::class, 'logout'])->name('logout');
 // Aplicar FirebaseUser Middleware a todas las rutas relevantes
 // Aquí solo van las rutas que ejerce el gerente/manager/superadmin, lo que sea
 Route::middleware([FirebaseUser::class, EnsureIsSuperAdmin::class])->group(function () {
+    
     Route::get('/admins', [AdminController::class, 'index'])->name('manager.admin-list');
     Route::get('/admins/{admin}/edit', [AdminController::class, 'edit'])->name('manager.admin-edit');
     Route::put('/admins/{admin}', [AdminController::class, 'update'])->name('manager.admin-update');
@@ -44,7 +46,17 @@ Route::middleware([FirebaseUser::class, EnsureIsSuperAdmin::class])->group(funct
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update')->withoutMiddleware([EnsureIsSuperAdmin::class]);
     //Eliminar usuario.
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admins.user-destroy')->withoutMiddleware([EnsureIsSuperAdmin::class]);
+
+
+
+    //Eliminar reviews.
+    Route::delete('/review/{review}', [ReviewController::class, 'destroy'])->name('users.review-destroy')->withoutMiddleware([EnsureIsSuperAdmin::class]);
+
 });
+
+Route::get('/reviews', [ReviewController::class, 'index'])->name('users.review-list');
+Route::post('/review/create', [ReviewController::class, 'store'])->name('users.review-create');
+
 
 //Aqui las rutas de las reviews para que cualquier usuario, logueado o no, pueda verlas.
 

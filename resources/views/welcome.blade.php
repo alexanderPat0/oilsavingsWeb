@@ -6,12 +6,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Welcome to Oilsavings</title>
-    @vite(['resources/css/welcomeScreen.css', 'resources/js/app.js'])
     <!-- CSS de SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- JS de SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* General Styles */
+        .body-background {
+            background: url('https://imgs.search.brave.com/7_03ZMe2wbDuAY2Z3_36LkquMQ2s8lS16GjXW0jmX80/rs:fit:500:0:0/g:ce/aHR0cHM6Ly9zZWF0/anJ2YWxsZS5jb20v/d3AtY29udGVudC91/cGxvYWRzLzIwMjMv/MDQvZ2Fzb2xpbmVy/YS1ub2N0dXJuYS5q/cGc') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: 'Figtree', sans-serif;
+            display: flex;
+            flex-direction: column;
+            /* Organiza el contenido verticalmente */
+            align-items: center;
+            /* Centra horizontalmente todo el contenido */
+        }
+
+        .header-container {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            /* Asegura que el contenedor ocupe todo el ancho */
+        }
+
+        .logo img {
+            height: 100px;
+            /* Ajusta la altura del logo */
+            width: auto;
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            color: black;
+        }
+
+        .content-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            /* Asegura que el contenedor ocupe todo el ancho */
+        }
+
+        .max-width-setter {
+            max-width: 1200px;
+            width: 100%;
+            /* Utiliza todo el ancho disponible hasta 1200px */
+        }
+
+        .center-align {
+            text-align: center;
+        }
+
+        .info-section {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            /* Distribuye el espacio uniformemente entre los elementos */
+            align-items: flex-start;
+            /* Alinea los elementos al inicio */
+            flex-wrap: wrap;
+            /* Permite envolver los elementos si es necesario */
+            width: 100%;
+            /* Asegura que la sección utilice todo el ancho disponible */
+        }
+
+        .info-card {
+            flex: 1 1 45%;
+            /* Flexibilidad y mínimo del 45% del contenedor */
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+            /* Añade margen para evitar la unión de tarjetas */
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            font-size: 1rem;
+            color: #666;
+            line-height: 1.6;
+            text-align: justify;
+            max-width: 400px;
+            /* Limita el ancho del texto para mejorar la legibilidad */
+        }
+
+        .authentication-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+            /* Asegura que los botones estén centrados en la pantalla */
+        }
+
+        .auth-button {
+            background-color: #ffffffb9;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .auth-button:hover {
+            background-color: #4b4b4bc0;
+        }
+
+        @media (min-width: 768px) {
+            .info-section {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+    </style>
 </head>
 
 <body class="antialiased body-background">
@@ -107,20 +228,19 @@
                             window.location.href = response.redirect_url;
                         }
                     },
-                    // success: function (response) {
-                    //     Swal.fire({
-                    //         position: "top-end",
-                    //         icon: "success",
-                    //         title: "Welcome!",
-                    //         showConfirmButton: false,
-                    //         timer: 1500
-                    //     });
-                    // },
                     error: function (jqXHR, textStatus, errorThrown) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Failed to Login',
-                            text: jqXHR.responseJSON.message || 'There was a problem while logging in.'
+                            text: jqXHR.responseJSON.message || 'There was a problem while logging in.',
+                            customClass: {
+                                popup: 'swal-wide'  // Clase personalizada para controlar el tamaño
+                            },
+                            width: '80%', // Puedes ajustar este valor según necesidades
+                            maxHeight: 600, // Máximo altura en píxeles
+                            overflowY: 'auto' // Habilitar desplazamiento si es necesario
+                            
+
                         });
                     }
                 });
@@ -178,7 +298,13 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Failed to Register',
-                            text: jqXHR.responseJSON.message || 'There was a problem with your registration.'
+                            text: jqXHR.responseJSON.message || 'There was a problem with your registration.',
+                            customClass: {
+                                popup: 'swal-wide' 
+                            },
+                            width: '80%', 
+                            maxHeight: 600, 
+                            overflowY: 'auto' 
                         });
                     }
                 });

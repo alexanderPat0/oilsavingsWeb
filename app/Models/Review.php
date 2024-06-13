@@ -4,33 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Review extends Model
 {
-
-    protected $table = 'reviews';
-
+    use Notifiable;
     protected $fillable = [
-        'placeId_userId', 
+        'placeIduserId', 
         'placeId', 
+        'placeName',
         'userId', 
+        'username',
         'review', 
         'rating', 
         'date', 
-        'deleted'
-    ];
-
-    protected $hidden = [
-        'deleted',
     ];
 
     protected $casts = [
         'date' => 'datetime',
-        'deleted' => 'boolean',
-    ];
-
-    protected $attributes = [
-        'deleted' => 0,
     ];
 
 }
