@@ -54,13 +54,8 @@ class AdminController extends Controller
 
 
             $idToken = $signInResult->idToken();
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600);
-            $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true);
-
-            $fiveMinutes = 300;
-            //Cookies que solo durarían 5 minutos para realizar pruebas.
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600);
-            $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true, false, 'Strict');
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, 60000);
+            $cookie = cookie('session', $sessionCookieString, 60000, '/', null, true, true, false, 'Strict');
 
             return response()->json([
                 'success' => true,
@@ -89,8 +84,12 @@ class AdminController extends Controller
     public function index()
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
+        if (is_null($admins)) {
+            $admins = [];  
+        }
         return view('manager.admin-list', compact('admins'));
     }
+
 
     // Store a newly created admin
     public function store(Request $request)
@@ -241,22 +240,7 @@ class AdminController extends Controller
         return view('admin.actions', compact('actions', 'admins'));
     }
 
-    // Log actions
-    private function logAction($adminId, $actionType, $targetId, $targetType)
-    {
-        $actionData = [
-            'admin_id' => $adminId,
-            'action_type' => $actionType,
-            'target_id' => $targetId,
-            'target_type' => $targetType,
-            'performed_at' => now()->timestamp,
-        ];
-
-        $this->database->getReference('actions')->push($actionData);
-    }
 }
-
-
 // public function createSuperAdmin()
 // {
 //     $userProperties = [
@@ -336,4 +320,6 @@ class AdminController extends Controller
 //     ];   
 //     $this->database->getReference('admins/' . $createdUser->uid)->set($adminData);
 //     return response()->json(['message' => 'Admin created successfully.']);
+// }
+
 // }
