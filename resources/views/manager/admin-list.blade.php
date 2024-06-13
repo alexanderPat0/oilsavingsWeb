@@ -90,7 +90,7 @@
                         });
                     },
                     error: function(xhr, status, error) {
-                        Swal.fire('Error', 'The user could not be deleted.', 'error');
+                        Swal.fire('Error', 'Administrator could not be deleted.', 'error');
                     }
                 });
             }

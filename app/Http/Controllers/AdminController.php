@@ -54,12 +54,12 @@ class AdminController extends Controller
 
 
             $idToken = $signInResult->idToken();
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600); 
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600);
             $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true);
-    
+
             $fiveMinutes = 300;
             //Cookies que solo durarían 5 minutos para realizar pruebas.
-            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600); 
+            $sessionCookieString = $this->auth->createSessionCookie($idToken, 3600);
             $cookie = cookie('session', $sessionCookieString, 10080, '/', null, true, true, false, 'Strict');
 
             return response()->json([
@@ -73,7 +73,7 @@ class AdminController extends Controller
             return response()->json(['error' => 'An error occurred with Firebase Authentication.'], 422);
         } catch (Exception $e) {
             // Aquí capturo todas las otras excepciones que no son específicamente de Firebase
-            return response()->json(['error' => $e->getMessage()], 500); 
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
     //Logout del admin
@@ -89,7 +89,7 @@ class AdminController extends Controller
     public function index()
     {
         $admins = $this->database->getReference('admins')->getSnapshot()->getValue();
-        return view('manager.admin-list', compact('admins')); 
+        return view('manager.admin-list', compact('admins'));
     }
 
     // Store a newly created admin
@@ -109,11 +109,9 @@ class AdminController extends Controller
         ];
 
         try {
-            // Crear usuario en Firebase Auth y obtener el UID
             $createdUser = $this->auth->createUser($userProperties);
-            $uid = $createdUser->uid; // UID del usuario creado
+            $uid = $createdUser->uid;
 
-            // Guardar datos en pending_activation con UID
             $this->database->getReference('pending_activation/' . $uid)->set([
                 'admin_id' => $createdUser->uid,
                 'name' => $request->name,
@@ -199,23 +197,42 @@ class AdminController extends Controller
     // Manager activate an admin account
     public function activate($id)
     {
-        $admin = $this->database->getReference('admins')->getChild($id)->getValue();
-        $admin['is_active'] = true;
-        $this->database->getReference('admins/' . $id)->set($admin);
+        $pendingAdmin = $this->database->getReference('pending_activation/' . $id)->getValue();
 
-        return redirect()->route('manager.admin-list')->with('success', 'Admin activated successfully.');
+        if ($pendingAdmin && $pendingAdmin['is_verified']) {
+            $adminData = [
+                'adminId' => $id,
+                'email' => $pendingAdmin['email'],
+                'name' => $pendingAdmin['name'],
+                'password' => $pendingAdmin['password'], 
+                'email_verified_at' => $pendingAdmin['verified_at'], 
+                'is_active' => true,
+                'is_super_admin' => false, 
+                'created_at' => now()->toString(), 
+                'updated_at' => now()->toString(), 
+            ];
+
+            $this->database->getReference('admins/' . $id)->set($adminData);
+            $this->database->getReference('pending_activation/' . $id)->remove();
+
+            return redirect()->route('manager.admin-list')->with('success', 'Admin activated successfully.');
+        }
+
+        return redirect()->route('manager.activations')->with('error', 'Invalid or already activated.');
     }
-
     public function pendingActivation()
     {
+        // Obtiene solo los registros verificados
         $pendingActivation = $this->database->getReference('pending_activation')
-            ->orderByChild('is_sent')
-            ->equalTo(false)
+        
+            ->orderByChild('is_verified')
+            ->equalTo(true)
             ->getSnapshot()
             ->getValue();
 
         return view('manager.activations', ['pendings' => $pendingActivation]);
     }
+
     // Show action history
     public function showActions()
     {

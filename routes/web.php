@@ -35,7 +35,7 @@ Route::middleware([FirebaseUser::class, EnsureIsSuperAdmin::class])->group(funct
     Route::put('/admins/{admin}', [AdminController::class, 'update'])->name('manager.admin-update');
     Route::delete('/admins/{admin}', [AdminController::class, 'destroy'])->name('manager.admin-destroy');
     Route::get('/actions', [AdminController::class, 'showActions'])->name('admin.actions');
-    Route::post('/manager/activations/send/{id}', [AdminController::class, 'sendActivation'])->name('manager.activations.send');
+    Route::post('/manager/activate/{id}', [AdminController::class, 'activate'])->name('manager.activate');
     Route::get('/manager/activations', [AdminController::class, 'pendingActivation'])->name('manager.activations');
 
 

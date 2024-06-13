@@ -13,33 +13,67 @@
             @forelse ($pendings as $id => $pending)
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ $pending['email'] }}
-                    <button class="btn btn-primary btn-sm" onclick="sendActivation('{{ $id }}')">Send Now</button>
+                    <button class="btn btn-primary btn-sm activate-button" data-id="{{ $id }}" data-url="{{ route('manager.activate', $id) }}">Activate as administrator</button>
                 </li>
             @empty
-                <li class="list-group-item">No pending verifications.</li>
+                <li class="list-group-item">No pending activations.</li>
             @endforelse
         </ul>
     </div>
 </div>
+@stop
+
+@section('css')
+@parent
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@stop
+
+@section('js')
+@parent
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function sendActivation(id) {
-    fetch(`/manager/activations/send/${id}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert('Verification link sent!');
-        location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to send the link.');
+    $(document).on('click', '.activate-button', function (e) {
+        e.preventDefault();
+        var button = $(this);
+        var url = button.data('url');
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to activate this account?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, activate it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: url,
+                    type: 'POST', // As it's a post route
+                    data: {
+                        '_token': '{{ csrf_token() }}', // CSRF token is required for POST methods in Laravel
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            var row = button.closest('li'); 
+                            row.remove();
+                            Swal.fire({
+                                position: "top-end",
+                                icon: "success",
+                                title: "Activated!",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else {
+                            Swal.fire('Error', 'Activation failed. Please try again.', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire('Error', 'Activation failed. Please try again.', 'error');
+                    }
+                });
+            }
+        });
     });
-}
 </script>
 @stop

@@ -22,10 +22,9 @@ class VerificationController extends Controller
         $this->auth = $firebase->createAuth();
     }
 
-    // Cambio aquí: Utiliza el objeto Request para obtener el ID
     public function verify(Request $request)
     {
-        $id = $request->query('id'); // Obtiene el ID desde el parámetro de URL
+        $id = $request->query('id'); 
 
         if (is_null($id)) {
             return redirect()->route('login')->with('error', 'Invalid request, no user ID provided.');
