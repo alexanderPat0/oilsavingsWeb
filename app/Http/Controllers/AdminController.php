@@ -118,7 +118,7 @@ class AdminController extends Controller
                 'password' => Hash::make($request->password),
                 'is_active' => false,
                 'activatedAt' => '',
-                'is_verified' => false,
+                'is_verified' => true,
                 'verified_at' => '',
                 'created_at' => now()->toString(),
             ]);
