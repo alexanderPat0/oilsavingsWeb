@@ -122,6 +122,10 @@
             font-size: 16px;
         }
 
+        .maybelater {
+            margin-top: 30px;
+        }
+
         .auth-button:hover {
             background-color: #4b4b4bc0;
         }
@@ -146,6 +150,9 @@
         <div class="authentication-buttons">
             <button id="loginBtn" class="auth-button login">Login</button>
             <button id="registerBtn" class="auth-button register">Register</button>
+        </div>
+        <div>
+            <button id="maybelater" class="auth-button maybelater">Maybe later</button>
         </div>
     </div>
 
@@ -239,7 +246,7 @@
                             width: '80%', // Puedes ajustar este valor según necesidades
                             maxHeight: 600, // Máximo altura en píxeles
                             overflowY: 'auto' // Habilitar desplazamiento si es necesario
-                            
+
 
                         });
                     }
@@ -300,19 +307,19 @@
                             title: 'Failed to Register',
                             text: jqXHR.responseJSON.message || 'There was a problem with your registration.',
                             customClass: {
-                                popup: 'swal-wide' 
+                                popup: 'swal-wide'
                             },
-                            width: '80%', 
-                            maxHeight: 600, 
-                            overflowY: 'auto' 
+                            width: '80%',
+                            maxHeight: 600,
+                            overflowY: 'auto'
                         });
                     }
                 });
             });
         });
-
-
+        document.getElementById('maybelater').addEventListener('click', function () {
+            window.location.href = '/reviews';
+        });
     </script>
 </body>
-
 </html>

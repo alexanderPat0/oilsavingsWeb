@@ -301,12 +301,6 @@ return [
             'topnav_right' => true,
         ],
         [
-            'text' => 'Your profile',
-            'url' => 'profile',
-            'topnav_right' => true,
-            'icon' => 'fas fa-fw fa-user',
-        ],
-        [
             'text' => 'Log out',
             'url' => 'logout',
             'topnav_right' => true,
@@ -318,14 +312,10 @@ return [
         //     'type' => 'sidebar-menu-search',
         //     'text' => 'search',
         // ],
-        [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
-        ],
+
         [
             'text' => ' Home',
-            'url' => '',
+            'url' => '/',
             'icon' => 'fa fa-home',
 
         ],
@@ -334,10 +324,6 @@ return [
             'text' => ' Admin list',
             'url' => 'admins',
             'icon' => 'fa fa-user',
-        ],
-        [
-            'text' => 'History log',
-            'url' => 'actions',
         ],
         [
             'text' => 'Applications',
@@ -349,17 +335,14 @@ return [
             'url' => 'users',
             'icon' => 'fa fa-users',
         ],
-        [
-            'text' => 'Restricted users',
-            'url' => '/banusers',
-        ],
+
         ['header' => 'Reviews'],
         [
             'text' => ' Reviews',
             'url' => 'reviews',
             'icon' => 'fa fa-comments',
         ],
-        
+
 
         // 'label' => 4,
         // 'label_color' => 'success',
